@@ -7,6 +7,18 @@ OSRM API NODEJS
 > NodeJS ^v10
 > Global `node-pre-gyp`, `node-gyp`, `nodemon`
 
+```bash
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+
+sudo apt-get update -y
+
+sudo apt install build-essential git cmake pkg-config \
+libbz2-dev libxml2-dev libzip-dev libboost-all-dev \
+lua5.2 liblua5.2-dev libtbb-dev libstdc++-5-dev
+
+```
+see [https://github.com/Project-OSRM/osrm-backend](https://github.com/Project-OSRM/osrm-backend)
+
 ### DEPENDS NODE
 
 > osrm@^5.22.0
