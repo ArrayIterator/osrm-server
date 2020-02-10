@@ -1,0 +1,9 @@
+auth:
+  "example-auth-token": "username"
+  "example-auth-hash2" : "username2"
+
+# OSRM PATH
+# String contains ${root}, ${data}, ${scripts}, ${public}
+# WILL BE REPLACE
+osrm:
+  path: ${data}/indonesia-latest.osrm
