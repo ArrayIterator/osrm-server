@@ -15,4 +15,4 @@ cd $SCRIPTPATH;
 # set max mem to 256
 #
 
-$(which nodemon) http.js --max-old-space-size=256 --watch scripts --watch routes --watch config.yaml --watch http.js
+$(which nodemon) listener.js --max-old-space-size=256 --watch scripts --watch routes --watch config.yaml --watch http.js
