@@ -59,7 +59,7 @@ setsid daemon.sh >/dev/null 2>&1 < /dev/null &
 ```conf
 
 # FILE $domain.vhost.conf
-# NGINX NODE UPSTREAM ADD MAX FAILS 3 & FAILE TIMEDOUT 30 SECONDS
+# NGINX NODE UPSTREAM ADD MAX FAILS 3 & FAILED TIMEDOUT 30 SECONDS
 upstream node_proxy_osrm {
         least_conn;
         server 127.0.0.1:5050 max_fails=3 fail_timeout=30s;
