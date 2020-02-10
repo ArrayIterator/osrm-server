@@ -28,7 +28,7 @@ try {
     global.config = new Config({});
 }
 
-console.log(config.all());
+console.log("Using Config: \n" + JSON.stringify(config.all(), null, 2));
 module.exports = () => {
     let app = express();
     app.disable('x-powered-by');
