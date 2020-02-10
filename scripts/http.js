@@ -15,7 +15,7 @@ global.express = express;
 global.rootPath   = path.join(__dirname, '/../').replace(/[\/]+$/g, '');
 global.configFile = path.join(rootPath, '/config.yaml');
 try {
-
+    global.config = new Config({});
     if (fs.existsSync(global.configFile)) {
         config = YAML.parse(fs.readFileSync(global.configFile).toString());
         if (!global.config || typeof global.config !== 'object') {
