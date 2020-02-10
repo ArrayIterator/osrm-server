@@ -3,9 +3,12 @@ OSRM API NODEJS
 
 ### PREREQUIRES
 
-> UBUNTU
-> NodeJS ^v10
-> Global `node-pre-gyp`, `node-gyp`, `nodemon`
+- UBUNTU Server
+
+- NodeJS ^v10
+
+- Global `node-pre-gyp`, `node-gyp`, `nodemon`
+
 
 ```bash
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -17,34 +20,30 @@ libbz2-dev libxml2-dev libzip-dev libboost-all-dev \
 lua5.2 liblua5.2-dev libtbb-dev libstdc++-5-dev
 
 ```
+
 see [https://github.com/Project-OSRM/osrm-backend](https://github.com/Project-OSRM/osrm-backend)
 
 ### DEPENDS NODE
 
-> osrm@^5.22.0
-
-> expresss@^4.1
-
-> maxmind@^4.1.0
-
-> yaml@^1.7.2
-
-> express-group-routes@^1.1.0
+- osrm@^5.22.0
+- expresss@^4.1
+- maxmind@^4.1.0
+- yaml@^1.7.2
+- express-group-routes@^1.1.0
 
 ### REF URI
 
-> GEOIP : https://db-ip.com/db/lite.php
-
-> OSRM : https://github.com/Project-OSRM/
-
-> OSM : https://openstreetmap.org
+- GEOIP : https://db-ip.com/db/lite.php
+- OSRM : https://github.com/Project-OSRM/
+- OSM : https://openstreetmap.org
 
 
 ### PORT LISTEN
 
-> PORT : `5050` to `5059`
+- PORT : `5050` to `5059`
 
 ### NGINX CONFIG
+
 
 ```conf
 
