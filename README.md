@@ -64,11 +64,16 @@ upstream node_proxy_osrm {
 }
 server {
 	listen 80;
+
 	# listen 443 ssl http2;
+	# ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
+	# ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
 
 	server_name $domain www.$domain;
 	default_type text/html;
 
+	# ADD PROXY HEADER
+	proxy_set_header X-Forwarded-For $remote_addr;
 	# ROOT PATH JUST TO TRY FILES
 	root /home/$user/host/$domain/public;
 
@@ -100,12 +105,18 @@ server {
                 add_header http 502;
                 echo "{\n    \"message\": \"502 Bad Gateway\"\n}";
 	}
-
+	location = /\#504 {
+                add_header Content-Type application/json;
+                default_type application/json;
+                add_header http 504;
+                echo "{\n    \"message\": \"504 Gateway Timeout\"\n}";
+        }
 	# HANDLE ERROR
 	error_page 404 /\#404;
 	error_page 403 /\#403;
 	error_page 500 /\#500;
 	error_page 502 /\#502;
+	error_page 504 /\#504;
 	location @proxy {
 		proxy_pass http://node_proxy_osrm;
 	}
