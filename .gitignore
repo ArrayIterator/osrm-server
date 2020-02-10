@@ -118,4 +118,7 @@ node_modules/
 /config.yaml
 /public
 /storage/**/*
-
+!/storage/data/.gitkeep
+!/storage/data/geoip/.gitkeep
+!/storage/data/osrm/.gitkeep
+!/storage/data/osrm/README.md
