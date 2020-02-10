@@ -4,7 +4,7 @@ class Config
 	constructor(config) {
 		this.____replacer = 'temp-' + Math.random();
 		if (typeof config === 'object') {
-			for (var i in config) {
+			for (let i in config) {
 				this.set(i, config[i]);
 			}
 		}
@@ -13,34 +13,40 @@ class Config
 		if (['____replacer', 'has', 'set', 'all', 'get', 'constructor'].indexOf(name) > -1) {
 			name = this.____replacer + '(' + name + ')';
 		}
-		let fixPath = (confs) => {
-	        if (!confs) {
-	            return confs;
+		let fixPath = (con) => {
+	        if (!con) {
+	            return con;
 	        }
 	        let rootPath = path.join(__dirname, '/..');
-	        if (typeof confs === 'string') {
-	            return confs
+	        let storagePath = path.join(rootPath, '/storage');
+	        if (typeof con === 'string') {
+	            return con
 	                .replace(/\$\{root\}/g, rootPath)
+	                .replace(/\$\{storage\}/g, storagePath)
 	                .replace(/\$\{script\}/g, __dirname)
+	                .replace(/\$\{scripts\}/g, __dirname)
 	                .replace(/\$\{public\}/g, rootPath +'/public')
-	                .replace(/\$\{data\}/g, rootPath +'/data')
+	                .replace(/\$\{data\}/g, storagePath +'/data')
 	                .replace(/\$\{[^\}]+\}/g, '')
 	                ;
-	        } else if (typeof confs === 'object') {
-	            for (var key in confs) {
-	                confs[key] = fixPath(confs[key]);
+	        } else if (typeof con === 'object') {
+	            for (let k in con) {
+	            	if (!con.hasOwnProperty(k)) {
+	            		continue;
+					}
+	                con[k] = fixPath(con[k]);
 	            }
-	            return confs;
+	            return con;
 	        }
 
-	        return confs;
+	        return con;
 	    };
 		this[name] = fixPath(value);
 	};
 	get(name, def) {
 		if (['____replacer', 'has', 'set', 'all', 'get', 'constructor'].indexOf(name) > -1) {
-			var reg = new RegExp('^' + this.____replacer + '\\((.+)\\)$', 'g');
-			name = i.replace(reg, '$1');
+			let reg = new RegExp('^' + this.____replacer + '\\((.+)\\)$', 'g');
+			name = name.replace(reg, '$1');
 		}
 		if (this[name] === undefined) {
 			return def;
@@ -49,20 +55,23 @@ class Config
 	};
 	has(name) {
 		if (['____replacer', 'has', 'set', 'all', 'get', 'constructor'].indexOf(name) > -1) {
-			var reg = new RegExp('^' + this.____replacer + '\\((.+)\\)$', 'g');
-			name = i.replace(reg, '$1');
+			let reg = new RegExp('^' + this.____replacer + '\\((.+)\\)$', 'g');
+			name = name.replace(reg, '$1');
 		}
 		return this[name] !== undefined;
 	};
 	all() {
 		let config = {};
-		for (var i in this ) {
+		for (let i in this ) {
+			if (!this.hasOwnProperty(i)) {
+				continue;
+			}
 			if (['____replacer', 'has', 'set', 'all', 'get', 'constructor'].indexOf(i) > -1) {
 				continue;
 			}
 
-			var reg = new RegExp('^' + this.____replacer + '\\((.+)\\)$', 'g');
-			var name = i.replace(reg, '$1');
+			let reg = new RegExp('^' + this.____replacer + '\\((.+)\\)$', 'g');
+			let name = i.replace(reg, '$1');
 			config[name] = this[i];
 		}
 		return config;

@@ -5,7 +5,6 @@ const fs = require('fs');
 const express = require('express');
 const YAML = require('yaml');
 const Config = require('./Config');
-//const OSRM = require('osrm');
 express.serve =
     express.application.serve =
     express.Router.serve = require('./serve');

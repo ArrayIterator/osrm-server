@@ -1,38 +1,45 @@
 module.exports = async (req, res) => {
 	const maxmind = require('maxmind');
-	var geoIpPath = rootPath + '/geoip';
-	const {notfound, internal, preconditionfailed, ok, expectation} = express.serve;
+	const geoIpPath = rootPath + '/storage/geoip';
+	const {notfound, internal, precondition, ok, expectation} = express.serve;
+	const isCompressed = !(!req.query.compress || !req.query.compress.toString().replace(/\s*/, '').match(/^(true|1|yes)$/gi));
 	let query = req.query;
 	let ip = query.ip || req.headers['x-forwarded-for'] || req.ip;
 	if (!ip || typeof ip !== 'string') {
-		return preconditionfailed(res, 'Precondition Failed. Invalid IP Address.');
+		return precondition(res, 'Precondition Failed. Invalid IP Address.');
 	}
 	let isFromQuery = typeof query.ip === 'string' && query.ip.trim() !== '';
 	ip = ip.trim() === '' ? req.ip : ip;
-	var isIpv6    = false;
-	var isIpvalid = false;
+	let isIpv6    = false;
+	let isIpValid = false;
 	isIpv6 = ip.match(/[:]/g);
 	if (isIpv6) {
-		isIpvalid = !ip.match(/[^0-9\:a-f]/gi)
+		isIpValid = !ip.match(/[^0-9\:a-f]/gi)
 			&& ip.match(
-					/(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/g
+					/(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/g
 				);
 	} else {
-		isIpvalid = ip.match(/^[0-9][0-9\.]+[0-9]$/g) 
+		isIpValid = ip.match(/^[0-9][0-9\.]+[0-9]$/g)
 			&& ip.match(
 				/^(?:(?:0|1[0-9]{0,2}|2(?:5[0-5]?|[0-4][0-9]?)?|[3-9][0-9]?)\.){3}(?:0|1[0-9]{0,2}|2(?:5[0-5]?|[0-4][0-9]?)?|[3-9][0-9]?)$/g
 			);
 	}
-	if (!isIpvalid) {
-		return preconditionfailed(
+	if (!isIpValid) {
+		return precondition(
 			res, 'Precondition Failed. Invalid IPv'+(isIpv6 ? '6' : '4')+' Address.'
 		);
 	}
-
-	var isErrorCountry = false;
-	var isErrorCity = false;
-
-	let doneCity = await maxmind.open(geoIpPath + '/GeoIP-City.mmdb').then((lookup) => {
+	let configs = config.get('geoip');
+	let geoIPCountryPath = geoIpPath + geoIpPath + '/GeoIP-Country.mmdb';
+	let geoIPCityPath = geoIpPath + geoIpPath + '/GeoIP-City.mmdb';
+	if (typeof configs === 'object') {
+		geoIPCountryPath = configs['country'] || geoIPCountryPath;
+		geoIPCityPath = configs['city'] || geoIPCityPath;
+	}
+	let isErrorCountry = false;
+	let isErrorCity = false;
+	let doneCountry;
+	let doneCity = await maxmind.open(geoIPCityPath).then((lookup) => {
 		return lookup.get(ip) || null;
 	}).catch((e) => {
 		doneCity = e || undefined;
@@ -40,7 +47,7 @@ module.exports = async (req, res) => {
 		return e || undefined;
 	});
 	if (! doneCity || isErrorCity) {
-		let doneCountry = await maxmind.open(geoIpPath + '/GeoIP-Country.mmdb').then((lookup) => {
+		doneCountry = await maxmind.open(geoIPCountryPath).then((lookup) => {
 			return lookup.get(ip) || null;
 		}).catch((e) => {
 			doneCountry = e || undefined;

@@ -4,7 +4,7 @@ module.exports = (req, res) => {
     let params = req.params;
     let query = req.query;
     const {precondition, ok, internal, required} = express.serve;
-    var isCompressed = !(! req.query.compress || !req.query.compress.toString().replace(/\s*/, '').match(/^(true|1|yes)$/gi));
+    const isCompressed = !(!req.query.compress || !req.query.compress.toString().replace(/\s*/, '').match(/^(true|1|yes)$/gi));
     let queryCoordinate = query.coordinates || query.coordinate || null;
     if (typeof queryCoordinate !== 'string') {
         return required(
