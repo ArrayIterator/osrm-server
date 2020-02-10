@@ -42,6 +42,17 @@ see [https://github.com/Project-OSRM/osrm-backend](https://github.com/Project-OS
 
 - PORT : `5050` to `5059`
 
+### RUN DAEMON
+
+
+Running [`daemon.sh`](daemon.sh) as daemon background service :
+
+
+```bash
+setsid daemon.sh >/dev/null 2>&1 < /dev/null &
+```
+
+
 ### NGINX CONFIG
 
 
