@@ -112,8 +112,11 @@ dist
 .Trash
 .wget-hsts
 /osrm-backend
-!/data/.gitkeep
 /data/
+!/data/.gitkeep
+/geoip/
+!/geoip/.gitkeep
+
 /build/
 node_modules/
 /config.yaml
