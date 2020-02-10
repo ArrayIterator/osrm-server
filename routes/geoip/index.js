@@ -97,7 +97,7 @@ module.exports = async (req, res) => {
 
 	return ok(res, {
 		request: {
-			client_ip: req.ip
+			client_ip: req.headers['x-forwarded-for'] || req.ip || null
 		},
 		result: data
 	});
