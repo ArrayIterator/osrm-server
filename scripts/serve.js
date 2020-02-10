@@ -19,7 +19,7 @@ function serve() {
     };
     this.required = function (res, message, isCompressed) {
         message = message || '428 Precondition Required';
-        return this.success(res, message, 428, isCompressed);
+        return this.error(res, message, 428, isCompressed);
     };
     this.preconditionrequired = this.required;
     this.ok = function (res, message, isCompressed) {
