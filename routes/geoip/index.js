@@ -3,7 +3,7 @@ module.exports = async (req, res) => {
 	var geoIpPath = rootPath + '/geoip';
 	const {notfound, internal, preconditionfailed, ok, expectation} = express.serve;
 	let query = req.query;
-	let ip = query.ip || req.ip;
+	let ip = query.ip || req.headers['x-forwarded-for'] || req.ip;
 	if (!ip || typeof ip !== 'string') {
 		return preconditionfailed(res, 'Precondition Failed. Invalid IP Address.');
 	}
