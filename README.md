@@ -45,7 +45,7 @@ see [https://github.com/Project-OSRM/osrm-backend](https://github.com/Project-OS
 ### RUN DAEMON
 
 
-Running [`daemon.sh`](osrm-server.sh) as daemon background service :
+Running [`osrm-server.sh`](osrm-server.sh) as daemon background service :
 
 
 ```bash
