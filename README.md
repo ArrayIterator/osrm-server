@@ -52,6 +52,10 @@ Running [`osrm-server.sh`](osrm-server.sh) as daemon background service :
 setsid ./osrm-server.sh >/dev/null 2>&1 < /dev/null &
 ```
 
+### REQUESTING
+
+add header `X-Auth-Token` with with declared token to get access
+
 
 ### NGINX CONFIG
 
