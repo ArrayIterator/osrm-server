@@ -45,11 +45,11 @@ see [https://github.com/Project-OSRM/osrm-backend](https://github.com/Project-OS
 ### RUN DAEMON
 
 
-Running [`daemon.sh`](daemon.sh) as daemon background service :
+Running [`daemon.sh`](osrm-server.sh) as daemon background service :
 
 
 ```bash
-setsid daemon.sh >/dev/null 2>&1 < /dev/null &
+setsid ./osrm-server.sh >/dev/null 2>&1 < /dev/null &
 ```
 
 

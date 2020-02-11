@@ -1,9 +1,12 @@
-module.exports = (router) => {
-	let errorHandler = (err, req, res, next) => {
-		const {internal} = express.serve;
-		return internal(res, err);
-	};
-	router.all('/', require('./main'), errorHandler);
-	router.get('/routes?', require('./route'), errorHandler);
-	router.get('/geoip', require('./geoip'), errorHandler);
-}
+const dr = require('../scripts/DirectoryReader');
+module.exports = (Router) => {
+	dr(__dirname, (routeName, RouterFile, Router) => {
+		if (routeName === 'index') {
+			routeName = '/';
+		} else {
+			routeName = `/${routeName}/`;
+		}
+
+		Router.group(routeName, require(RouterFile));
+	}, Router);
+};

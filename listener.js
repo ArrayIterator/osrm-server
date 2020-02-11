@@ -1,36 +1,36 @@
-const app = require('./scripts/http.js');
-const portCheck = require('./scripts/port-check.js');
-let portStart = 5050;
-let count = 0;
+const app = require('./scripts/Http');
+const PortCheck = require('./scripts/PortCheck');
+let port_start = 5050;
+let countMax = 10;
 let succeed = 0;
 let counted = 0;
-for (var start = 5050; start+10 > portStart;) {
+let listener = (inuse, port, app) => {
 	counted++;
-	portCheck(portStart, (inuse, port, app) => {
-		succeed++;
-		if (inuse) {
-			console.log('Port Is Used : ' + port);
-			return;
-		}
-		count++;
-		let server = app().listen(port, '127.0.0.1', () => {
-			let addr = server.address();
-			console.log(`Listening [${addr.family}] => ${addr.address}:${addr.port}`);
-		}).setTimeout(60000);
-	}, portStart++, app);
-}
-
-var Interval = setInterval(function() {
-	if (succeed === counted) {
-		if (count === 0) {
-			console.log(`---------------------------------------`);
-			console.log(`No Upstreams has been started.`);
-			console.log(`---------------------------------------`);
-		} else {
-			console.log(`---------------------------------------`);
-			console.log(`Succeed Listening ${count} upstreams.`);
-			console.log(`---------------------------------------`);
-		}
-		clearInterval(Interval);
+	if (counted > countMax) {
+		console.log(`\n---------------------------------------`);
+		console.log("Succeed Binding \033[32m" + succeed + "\033[0m upstreams.");
+		console.log("Failed Binding \033[31m"  + (countMax-succeed) + "\033[0m upstreams.");
+		console.log(`---------------------------------------\n`);
+		return;
 	}
-}, 10);
+
+	if (inuse) {
+		console.log(`\n---------------------------------------`);
+		console.log("Port \033[33m"+port+"\033[0m is in used");
+		console.log(`---------------------------------------`);
+		return PortCheck(port+1, listener, app);
+	}
+	succeed++;
+	let application = app();
+	let server = application.listen(port, '127.0.0.1', () => {
+		let addr = server.address();
+		console.log(`\n---------------------------------------`);
+		console.log("Listening [\033[33m"+addr.family+"\033[0m] => \033[32m"+addr.address+":"+addr.port+"\033[0m");
+		console.log(`---------------------------------------`);
+		application.start(() => {
+			PortCheck(addr.port+1, listener, app);
+		});
+	}).setTimeout(60000);
+};
+
+PortCheck(port_start, listener, app);

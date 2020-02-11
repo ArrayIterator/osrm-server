@@ -5,6 +5,9 @@ class Config
 		this.____replacer = 'temp-' + Math.random();
 		if (typeof config === 'object') {
 			for (let i in config) {
+				if (!config.hasOwnProperty(i)) {
+					continue;
+				}
 				this.set(i, config[i]);
 			}
 		}
@@ -17,17 +20,18 @@ class Config
 	        if (!con) {
 	            return con;
 	        }
-	        let rootPath = path.join(__dirname, '/..');
-	        let storagePath = path.join(rootPath, '/storage');
+
+	        let RootPath = path.join(__dirname, '/..');
+	        let StoragePath = path.join(RootPath, '/storage');
 	        if (typeof con === 'string') {
 	            return con
-	                .replace(/\$\{root\}/g, rootPath)
-	                .replace(/\$\{storage\}/g, storagePath)
-	                .replace(/\$\{script\}/g, __dirname)
-	                .replace(/\$\{scripts\}/g, __dirname)
-	                .replace(/\$\{public\}/g, rootPath +'/public')
-	                .replace(/\$\{data\}/g, storagePath +'/data')
-	                .replace(/\$\{[^\}]+\}/g, '')
+	                .replace(/\${root}/g, RootPath)
+	                .replace(/\${storage}/g, StoragePath)
+	                .replace(/\${script}/g, __dirname)
+	                .replace(/\${scripts}/g, __dirname)
+	                .replace(/\${public}/g, RootPath +'/public')
+	                .replace(/\${data}/g, StoragePath +'/data')
+	                .replace(/\${[^}]+}/g, '')
 	                ;
 	        } else if (typeof con === 'object') {
 	            for (let k in con) {
