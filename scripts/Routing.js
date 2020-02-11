@@ -20,6 +20,10 @@ class Routing {
         return this.serve.preconditionfailed(res, message);
     }
 
+    precondition(res, message) {
+        return this.serve.preconditionfailed(res, message);
+    }
+
     expectation(res, message) {
         return this.serve.exception(res, message);
     }

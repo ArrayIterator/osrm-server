@@ -9,20 +9,19 @@ class Route extends Routing {
         const fs = require('fs');
         //let params = req.params;
         let query = req.query;
-        const {precondition, ok, internal, required} = Express.Serve;
         let queryCoordinate = query.coordinates || query.coordinate || null;
         let osrmPath = Config.get('osrm') || null;
         osrmPath = osrmPath ? osrmPath.path : null;
         osrmPath = osrmPath || path.join(StoragePath + '/osrm/indonesia-latest.osrm');
         if (!fs.existsSync(osrmPath)) {
-            return internal(
+            return this.internal(
                 res,
                 "500 Internal Server Error. OSRM database has not ready."
             );
         }
 
         if (typeof queryCoordinate !== 'string') {
-            return required(
+            return this.required(
                 res,
                 "428 Precondition Required. Coordinate could not be empty."
             );
@@ -30,7 +29,7 @@ class Route extends Routing {
         queryCoordinate = queryCoordinate.replace(/[|]+/, '|').replace(/(^[|]+|[|]+$)/, '');
         let points = queryCoordinate.split('|');
         if (points.length < 2) {
-            return precondition(
+            return this.failed(
                 res,
                 "412 Precondition Failed. Invalid source or target position."
             );
@@ -54,7 +53,7 @@ class Route extends Routing {
             }
             let coords = points[i].replace(/\s*/, '');
             if (coords.match(/[^\-0-9.,]/)) {
-                return precondition(
+                return this.failed(
                     res,
                     `412 Precondition Failed. Invalid coordinates position offset ${i}.`
                 );
@@ -62,7 +61,7 @@ class Route extends Routing {
 
             coords = coords.split(',');
             if (coords.length !== 2) {
-                return precondition(
+                return this.failed(
                     res,
                     `412 Precondition Failed. Invalid coordinates position count offset ${i}.`
                 );
@@ -73,7 +72,7 @@ class Route extends Routing {
             let startLonFloat = parseFloat(startLon);
 
             if (startLatFloat > maxLat || startLatFloat < minLat || startLonFloat > maxLon || startLonFloat < minLon) {
-                return precondition(
+                return this.failed(
                     res,
                     `412 Precondition Failed. Coordinates position out of range on offset ${i}.`
                 );
@@ -81,7 +80,7 @@ class Route extends Routing {
             if (startLatFloat > indonesiaMaxLat || startLatFloat < indonesiaMinLat
                 || startLonFloat > indonesiaMaxLon || startLonFloat < indonesiaMinLon
             ) {
-                return precondition(
+                return this.failed(
                     res,
                     `412 Precondition Failed. Coordinates position is not in Indonesia on offset ${i}.`
                 );
@@ -184,9 +183,9 @@ class Route extends Routing {
         };
 
         let osrm = new OSRM({path: osrmPath, algorithm: "MLD"});
-        osrm.route(queries, function (err, result) {
+        osrm.route(queries, (err, result) => {
             if (err) {
-                return internal(res, err.message);
+                return this.error(res, err.message);
             }
             let resp = {
                 request: {
@@ -199,7 +198,7 @@ class Route extends Routing {
                 }
                 resp[k] = result[k];
             }
-            return ok(
+            return this.success(
                 res,
                 resp
             );
