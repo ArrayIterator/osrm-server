@@ -1,9 +1,10 @@
 const resp = require('express/lib/response');
+
 function Serve() {
     let S = Serve;
     S.success = (res, message, statusCode = 200, isCompressed) => {
         res = res || global.Response || Object.create(resp, {
-            app: { configurable: true, enumerable: true, writable: true, value: Application|| Express }
+            app: {configurable: true, enumerable: true, writable: true, value: Application || Express}
         });
         isCompressed = isCompressed === undefined
             ? global.Compressed || false
@@ -27,7 +28,7 @@ function Serve() {
     };
     S.error = function (res, message, statusCode = 500, isCompressed) {
         res = res || global.Response || Object.create(resp, {
-            app: { configurable: true, enumerable: true, writable: true, value: Application|| Express }
+            app: {configurable: true, enumerable: true, writable: true, value: Application || Express}
         });
         isCompressed = isCompressed === undefined
             ? global.Compressed || false
@@ -43,10 +44,10 @@ function Serve() {
             );
         if (message instanceof Error) {
             message = {
-                message : message.message,
-                trace : {
-                    message : message.message,
-                    code: message.code||0,
+                message: message.message,
+                trace: {
+                    message: message.message,
+                    code: message.code || 0,
                     stack: message.stack
                 }
             };
@@ -130,4 +131,5 @@ function Serve() {
 
     return S;
 }
+
 module.exports = new Serve();

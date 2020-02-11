@@ -1,5 +1,4 @@
-class Route extends Routing
-{
+class Route extends Routing {
     getPattern() {
         return '/routes?'
     }
@@ -49,7 +48,7 @@ class Route extends Routing
         let indonesiaMinLon = 94;
 
         let coordinates = [];
-        for (let i = 0; points.length > i;i++) {
+        for (let i = 0; points.length > i; i++) {
             if (!points[i]) {
                 continue;
             }
@@ -87,7 +86,7 @@ class Route extends Routing
                     `412 Precondition Failed. Coordinates position is not in Indonesia on offset ${i}.`
                 );
             }
-            coordinates.push([ +startLon, +startLat ]);
+            coordinates.push([+startLon, +startLat]);
         }
 
         // query params
@@ -185,7 +184,7 @@ class Route extends Routing
         };
 
         let osrm = new OSRM({path: osrmPath, algorithm: "MLD"});
-        osrm.route(queries, function(err, result) {
+        osrm.route(queries, function (err, result) {
             if (err) {
                 return internal(res, err.message);
             }
@@ -207,4 +206,5 @@ class Route extends Routing
         });
     }
 }
+
 module.exports = Route;

@@ -10,8 +10,8 @@ module.exports = () => {
     let app = express();
     // add global
     global.Express = express;
-    global.RootPath   = path.join(__dirname, '/../').replace(/[\/]+$/g, '');
-    global.StoragePath   = path.join(RootPath, '/storage');
+    global.RootPath = path.join(__dirname, '/../').replace(/[\/]+$/g, '');
+    global.StoragePath = path.join(RootPath, '/storage');
     global.ConfigFile = path.join(RootPath, '/config.yaml');
     // console.log(ConfigFile);
     global.Compressed = false;
@@ -38,7 +38,7 @@ module.exports = () => {
                 }
                 config = new Configuration(config);
             }
-        } catch(e) {
+        } catch (e) {
             config = new Configuration({});
         }
         global.Config = config;
@@ -53,13 +53,13 @@ module.exports = () => {
                     if (!tokenTmp.hasOwnProperty(hash)) {
                         continue;
                     }
-                    if (typeof hash === 'string' && typeof tokenTmp[hash] === 'string')  {
+                    if (typeof hash === 'string' && typeof tokenTmp[hash] === 'string') {
                         token = token || {};
                         token[hash] = tokenTmp[hash];
                     }
                 }
             }
-        } catch(e) {
+        } catch (e) {
             token = null;
         }
 
@@ -69,8 +69,8 @@ module.exports = () => {
             this.use((req, res, next) => {
                 let headers = req.headers;
                 let query = req.query;
-                global.Response   = res;
-                global.Request    = req;
+                global.Response = res;
+                global.Request = req;
                 global.Compressed = !(
                     (
                         headers['x-minify'] && headers['x-minify'].toString().match(/^\s*(true|1|yes|on)\s*$/gi)
@@ -83,12 +83,12 @@ module.exports = () => {
                 if (token === null) {
                     try {
                         next();
-                    } catch(e) {
+                    } catch (e) {
                         return internal(
                             res,
                             {
-                                message : `500 Internal Server Error.`,
-                                trace : {
+                                message: `500 Internal Server Error.`,
+                                trace: {
                                     message: e.message,
                                     code: e.code || 500
                                 }
@@ -98,7 +98,7 @@ module.exports = () => {
                     return;
                 }
                 let headerToken = headers['x-auth-token'] || query['token'];
-                if (!headerToken || ! token[headerToken]) {
+                if (!headerToken || !token[headerToken]) {
                     return unauthorized(res);
                 }
 
@@ -106,13 +106,13 @@ module.exports = () => {
                 next();
             });
             this.group('/', require(basePath));
-        } catch(e) {
+        } catch (e) {
             this.use((req, res) => {
                 return internal(
                     res,
                     {
-                        message : `500 Internal Server Error.`,
-                        trace : {
+                        message: `500 Internal Server Error.`,
+                        trace: {
                             message: e.message,
                             code: e.code || 500
                         }

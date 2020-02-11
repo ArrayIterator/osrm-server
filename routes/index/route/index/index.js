@@ -1,3 +1,2 @@
-module.exports = class Index extends Routing
-{
+module.exports = class Index extends Routing {
 };

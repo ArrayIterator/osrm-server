@@ -1,4 +1,4 @@
-RoutingStrategy = function(Router, Routed) {
+RoutingStrategy = function (Router, Routed) {
     const serve = Express.Serve;
     this.Route = this.RoutingStrategy = RoutingStrategy;
     if (typeof Router !== "function"

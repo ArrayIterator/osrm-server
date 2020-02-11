@@ -1,7 +1,5 @@
-class Index extends Routing
-{
-    getMethods()
-    {
+class Index extends Routing {
+    getMethods() {
         return 'all';
     }
 }
