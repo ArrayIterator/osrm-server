@@ -1,4 +1,4 @@
-const app = require('./scripts/Http');
+const app = require('./scripts');
 const PortCheck = require('./scripts/PortCheck');
 let port_start = 5050;
 let countMax = 10;
