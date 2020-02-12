@@ -6,33 +6,54 @@
 - Prefix : `/osrm/`
 
 
-| PATH              | METHOD | NOTES                              |
-| ------------------|--------|------------------------------------|
-| `/osrm/route`     | GET    | Get route by declared coordinates  |
+| PATH              | METHOD   | NOTES                              |
+| ------------------|----------|------------------------------------|
+| `/osrm/route`     | GET|POST | Get route by declared coordinates  |
 
 > QUERY
 
 ```
+coordinates
+    - Type     : (string|array)
+    - Note     : declare coordinates to get, string separated by `|` and longitude latitude separated by comma `,` make sure request has 2 coordinated
+    - Values   : (lon,lat|lon,lat) | (coordinates[0][lon]=float&coordinates[0][lat]=float&coordinates[1][lon]=float&coordinates[1][lat]=float)
+    - Default  :
+    - Required : true (2 coordinates minimum)
+    - Example  :
+        1. ?coordinates=112.7227133,-7.9963867|112.6548642,-7.9963867|112.8548642,-7.8963867
+        2. ?coordinates[]=112.7227133,-7.9963867&coordinates[]=112.6548642,-7.9963867&coordinates[]=112.8548642,-7.8963867
+        3. ?coordinates[0][0]=112.7227133&coordinates[0][1]=-7.9963867&coordinates[1][0]=112.6548642&coordinates[1][1]=-7.9963867&coordinates[2][0]=112.8548642&coordinates[2][1]=-7.8963867
+
 alternatives 
     - Type     : (int|bool)
     - Note     : integer get alternatives
     - Values   : ([0-9]+|true|false)
-    - Default  : true
+    - Default  : false
     - Required : false
+    - Example  :
+        1. ?alternatives=true&coordinates=xxxx,xxx|xxx,xxx
+        2. ?alternatives=10&coordinates=xxxx,xxx|xxx,xxx
 
 geometry
     - Type     : (string)
     - Note     : geometry type
     - Values   : (geojson|polyline)
-    - Default  : geojson
+    - Default  : polyline
     - Required : false
+    - Example  :
+        1. ?geometry=geojson&coordinates=xxxx,xxx|xxx,xxx
+        2. ?geometry=polyline&coordinates=xxxx,xxx|xxx,xxx
 
 annotations
-    - Type     : (string|bool)
+    - Type     : (string|bool|array)
     - Note     : show annotations separate by comma
     - Values   : (duration|nodes|distance|weight|datasources|speed)
-    - Default  : nodes,distance
+    - Default  : false
     - Required : false
+    - Example  :
+        1. ?annotations=duration&coordinates=xxxx,xxx|xxx,xxx
+        2. ?annotations=distance,nodes&coordinates=xxxx,xxx|xxx,xxx
+        2. ?annotations[]=distance&annotations[]=nodes&coordinates=xxxx,xxx|xxx,xxx
 
 snapping 
     - Type     : (string)
@@ -40,6 +61,19 @@ snapping
     - Values   : (default|any)
     - Default  : default
     - Required : false
+    - Example  :
+        1. ?snapping=any&coordinates=xxxx,xxx|xxx,xxx
+        2. ?snapping=default&coordinates=xxxx,xxx|xxx,xxx
+
+steps 
+    - Type     : (string)
+    - Note     : Return route steps for each route leg.
+    - Values   : (true|false)
+    - Default  : false
+    - Required : false
+    - Example  :
+        1. ?steps=true&coordinates=xxxx,xxx|xxx,xxx
+        2. ?steps=false&coordinates=xxxx,xxx|xxx,xxx
 
 radius      
     - Type     : (float|int)
@@ -47,6 +81,9 @@ radius
     - Values   : (null|float)
     - Default  : null
     - Required : false
+    - Example  :
+        1. ?radius=10.5&coordinates=xxxx,xxx|xxx,xxx
+        2. ?radius=20&coordinates=xxxx,xxx|xxx,xxx
 
 ```
 
@@ -55,9 +92,9 @@ radius
 
 - Prefix : `/geoip/`
 
-| PATH              | METHOD | NOTES                              |
-| ------------------|--------|------------------------------------|
-| `/geoip/ip`       | GET    | Get IP Information of country/city |
+| PATH              | METHOD   | NOTES                              |
+| ------------------|----------|------------------------------------|
+| `/geoip/ip`       | GET      | Get IP Information of country/city |
 
 > QUERY
 
@@ -68,5 +105,8 @@ ip
     - Values   : (ipv6/4)
     - Default  : (remote ip, eg: 127.0.0.1)
     - Required : false
+    - Example  :
+        1. ?ip=8.8.8.8
+        2. ?ip=2001:4860:4860::8888
 
 ```

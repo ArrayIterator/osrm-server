@@ -4,15 +4,21 @@ module.exports = () => {
     const path = require('path');
     const fs = require('fs');
     const express = require('express');
+    const bodyParser = require('body-parser');
     const yaml = require('yaml');
     const Configuration = require('./Config');
     const groupRouter = require('express-group-routes');
     let app = express();
     // add global
     global.Express = express;
+    global.Extends = require('./Extends');
+    global.AsyncAwait = require('./AsyncAwait');
+    global.Routing = require('./Routing');
+    global.RoutingStrategy = require('./RoutingStrategy');
     global.RootPath = path.join(__dirname, '/../').replace(/[\/]+$/g, '');
     global.StoragePath = path.join(RootPath, '/storage');
     global.ConfigFile = path.join(RootPath, '/config.yaml');
+
     // console.log(ConfigFile);
     global.Compressed = false;
     // add circular
@@ -22,8 +28,6 @@ module.exports = () => {
             express.Router.Serve =
                 app.Serve = require('./Serve');
     app.Serve.Application = app;
-    global.Routing = require('./Routing');
-    global.RoutingStrategy = require('./RoutingStrategy');
     global.Application = app;
 
     app.start = function (callback) {
@@ -66,26 +70,27 @@ module.exports = () => {
         global.tokens = token;
         try {
             let basePath = path.join(__dirname, '/../routes');
-            this.use((req, res, next) => {
-                let headers = req.headers;
-                let query = req.query;
-                global.Response = res;
-                global.Request = req;
+            this.use((Request, Response, Next) => {
+                Response = require('./Response')(Request, Response);
+                let headers = Request.headers;
+                let query = Request.query;
+                global.Response = Response;
+                global.Request = Request;
                 global.Compressed = !(
                     (
                         headers['x-minify'] && headers['x-minify'].toString().match(/^\s*(true|1|yes|on)\s*$/gi)
                     )
-                    || !req.query.compress
-                    || !req.query.compress.toString()
+                    || !Request.query.compress
+                    || !Request.query.compress.toString()
                         .replace(/\s*/, '')
                         .match(/^\s*(true|1|yes|on)\s*$/gi)
                 );
                 if (token === null) {
                     try {
-                        next();
+                        Next();
                     } catch (e) {
                         return internal(
-                            res,
+                            Response,
                             {
                                 message: `500 Internal Server Error.`,
                                 trace: {
@@ -99,11 +104,34 @@ module.exports = () => {
                 }
                 let headerToken = headers['x-auth-token'] || query['token'];
                 if (!headerToken || !token[headerToken]) {
-                    return unauthorized(res);
+                    return unauthorized(Response);
                 }
 
-                res.header('X-User-Auth', token[headerToken]);
-                next();
+                Response.header('X-Auth-User', token[headerToken]);
+                Next();
+            });
+
+            // use body parser
+            app.use(bodyParser.json());
+            app.use(bodyParser.urlencoded({extended: true}));
+            this.use((Request, Response, Next) => {
+                let headers = Request.headers;
+                if (headers['x-minify'] !== undefined) {
+                    Next();
+                    return;
+                }
+                let body = Request.body || {};
+                if (body.compress) {
+                    global.Compressed = !(
+                        body.compress === 1
+                        || body.compress === true
+                        || typeof body.compress === 'string' && !body
+                            .compress
+                            .replace(/\s*/, '')
+                            .match(/^\s*(true|1|yes|on)\s*$/gi)
+                    );
+                }
+                Next();
             });
             this.group('/', require(basePath));
         } catch (e) {

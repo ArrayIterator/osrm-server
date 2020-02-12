@@ -86,10 +86,10 @@ class Ip extends Routing {
             return this.expectation(res, `Could not get data from ${ip}`);
         }
         if (isErrorCountry) {
-            return this.error(res, doneCountry);
+            return this.internal(res, doneCountry);
         }
         if (isErrorCity) {
-            return this.error(res, doneCity);
+            return this.internal(res, doneCity);
         }
         let data = {
             ip: {

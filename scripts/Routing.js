@@ -5,39 +5,39 @@ class Routing {
 
     // --- START SERVING
     notfound(res, message) {
-        return this.serve.notfound(res, message);
+        return this.serve.notfound(...arguments);
     }
 
     unauthorized(res, message) {
-        return this.serve.unauthorized(res, message);
+        return this.serve.unauthorized(...arguments);
     }
 
     internal(res, message) {
-        return this.serve.internal(res, message);
+        return this.serve.internal(...arguments);
     }
 
     failed(res, message) {
-        return this.serve.preconditionfailed(res, message);
+        return this.serve.preconditionfailed(...arguments);
     }
 
     precondition(res, message) {
-        return this.serve.preconditionfailed(res, message);
+        return this.serve.preconditionfailed(...arguments);
     }
 
     expectation(res, message) {
-        return this.serve.exception(res, message);
+        return this.serve.exception(...arguments);
     }
 
     required(res, message) {
-        return this.serve.required(res, message);
+        return this.serve.required(...arguments);
     }
 
-    error(res, message) {
-        return this.internal(res, message);
+    error(res, message, statusCode = 500) {
+        return this.serve.error(...arguments);
     }
 
     success(res, message) {
-        return this.serve.success(res, message);
+        return this.serve.success(...arguments);
     }
 
     // --- END SERVING

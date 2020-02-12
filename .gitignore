@@ -122,3 +122,4 @@ node_modules/
 !/storage/data/geoip/.gitkeep
 !/storage/data/osrm/.gitkeep
 !/storage/data/osrm/README.md
+/nginx/upstream/generated_node_proxy_osrm.conf
