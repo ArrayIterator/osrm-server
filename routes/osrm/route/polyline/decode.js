@@ -23,15 +23,24 @@ class PolylineDecode extends Routing
         }
         try {
             let data = Poly.decode(polyline);
+            if (typeof data !== 'object') {
+                return this.failed(res, '417 Expectation Failed. Could not decode polyline');
+            }
+            for (let i in data) {
+                if (!data.hasOwnProperty(i)) {
+                    continue;
+                }
+                data[i] = [
+                    data[i].pop(),
+                    data[i].pop(),
+                ];
+            }
             return this.success(
                 res,
-                data
-                // {
-                //     request: {
-                //         data: polyline,
-                //     },
-                //     result: data,
-                // }
+                {
+                    note    : "Location array sorted by longitude first.",
+                    result  : data
+                }
             )
         } catch (e) {
             return this.error(res, e);
