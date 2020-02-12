@@ -6,16 +6,17 @@
 - Prefix : `/osrm/`
 
 
-| PATH              | METHOD   | NOTES                              |
-| ------------------|----------|------------------------------------|
-| `/osrm/route`     | GET|POST | Get route by declared coordinates  |
+| PATH              | METHOD        | NOTES                              |
+| ------------------|---------------|------------------------------------|
+| `/route`          | GET|POST      | Get route by declared coordinates  |
+| `/nearest`        | GET           | Get route by declared coordinates  |
 
-> QUERY
+> AVAILABLE PARAMETERS
 
 ```
 coordinates
     - Type     : (string|array)
-    - Note     : declare coordinates to get, string separated by `|` and longitude latitude separated by comma `,` make sure request has 2 coordinated
+    - Note     : declare coordinates to get, string separated by `|` and longitude latitude separated by comma `,`
     - Values   : (lon,lat|lon,lat) | (coordinates[0][lon]=float&coordinates[0][lat]=float&coordinates[1][lon]=float&coordinates[1][lat]=float)
     - Default  :
     - Required : true (2 coordinates minimum)
@@ -85,18 +86,88 @@ radius
         1. ?radius=10.5&coordinates=xxxx,xxx|xxx,xxx
         2. ?radius=20&coordinates=xxxx,xxx|xxx,xxx
 
+number      
+    - Type     : (int)
+    - Note     : Number of nearest segments that should be returned. Must be an integer greater than or equal to 1.
+    - Values   : (null|float)
+    - Default  : 1
+    - Required : false
+    - Example  :
+        1. ?nearest=10&coordinates=xxxx,xxx|xxx,xxx
+
 ```
+
+> ROUTE : `/osrm/route`
+
+**query `coordinates` make sure request has 2 coordinates.**
+
+
+Accepted params:
+
+- `coordinates`|`coordinates`  (make sure request has 2 coordinates)
+- `alternatives`| `alternative`
+- `overview`
+- `geometry`|`geometries`
+- `annotations`|`annotation`
+- `snapping`
+- `radius`|`radiuses`
+- `steps`|`step`
+- `continue_straight`|`continue`
+
+
+> ROUTE : `/osrm/nearest`
+
+Accepted params:
+
+- `coordinates`|`coordinates`  (make sure request has 2 coordinates)
+- `alternatives`| `alternative`
+- `overview`
+- `geometry`|`geometries`
+- `annotations`|`annotation`
+- `snapping`
+- `radius`|`radiuses`
+- `steps`|`step`
+- `continue_straight`|`continue`
+
+- Prefix : `/osrm/polyline`
+
+| PATH              | METHOD        | NOTES                              |
+| ------------------|---------------|------------------------------------|
+| `/decode`         | GET|POST      | Get route by declared coordinates  |
+
+
+> AVAILABLE PARAMETERS
+
+```
+data 
+    - Type     : (string)
+    - Note     : Decode Polyline to array [latitude, longitude]
+    - Values   : polyline
+    - Default  : false
+    - Required : false
+    - Example  :
+        1. ?data=|vxo@y`_oTaE}Ak[leAwHtd@pBbBKvH}GnEwFlQ}LxVaDlOyz@v~Bzb@zRtCdg@lPnMnSrf@z^``@pRnKtLzBd@wBu@mEfGsLgVyP`H_K
+
+```
+
+> ROUTE : `/osrm/polyline/decode`
+
+Accepted params:
+
+- `data` (string polyline data)
+
 
 
 ### GEOIP
 
 - Prefix : `/geoip/`
 
-| PATH              | METHOD   | NOTES                              |
-| ------------------|----------|------------------------------------|
-| `/geoip/ip`       | GET      | Get IP Information of country/city |
+| PATH              | METHOD        | NOTES                              |
+| ------------------|---------------|------------------------------------|
+| `/ip`             | GET           | Get IP Information of country/city |
 
-> QUERY
+
+> AVAILABLE PARAMETERS
 
 ```
 ip

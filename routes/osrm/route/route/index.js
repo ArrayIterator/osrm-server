@@ -1,6 +1,6 @@
 class Route extends Routing {
     getPattern() {
-        return '/routes?'
+        return '/'
     }
 
     getMethods() {
@@ -8,7 +8,7 @@ class Route extends Routing {
     }
 
     getCoordinates(coordinates) {
-        if (coordinates === 'string') {
+        if (typeof coordinates === 'string') {
             coordinates = coordinates
                 .replace(/(?:[,\s]+)?[|]+([,\s]+)?/g, '|')
                 .replace(/(^[,|\s]+|[,|\s]+$)/g, '')
@@ -17,7 +17,7 @@ class Route extends Routing {
             if (coordinates === '') {
                 return [];
             }
-            return coordinates;
+            return coordinates.split('|');
         }
 
         if (typeof coordinates === 'object') {
@@ -127,6 +127,7 @@ class Route extends Routing {
                 params.coordinates = coordinates.join('|');
             }
         }
+
         // console.log(params);
         return Processor.route(params, req, res, next);
     }

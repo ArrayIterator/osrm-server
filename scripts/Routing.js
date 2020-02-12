@@ -66,7 +66,7 @@ class Routing {
         return this.notfound(res);
     }
 
-    next(router) {
+    next(router, route) {
         // console.log(router);
     }
 

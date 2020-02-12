@@ -1,5 +1,12 @@
-RoutingStrategy = function (Router, Routed) {
+RoutingStrategy = function (Prefix, Router, Routed) {
     const serve = Express.Serve;
+    if (typeof Prefix !== 'string') {
+        return RoutingStrategy;
+    }
+    if (Prefix.trim() === '' || Prefix[0] !== '/') {
+        Prefix = '/' + Prefix.trim();
+    }
+
     this.Route = this.RoutingStrategy = RoutingStrategy;
     if (typeof Router !== "function"
         || typeof Router.params !== 'object'
@@ -51,6 +58,7 @@ RoutingStrategy = function (Router, Routed) {
 
     Route.availableMethods = availableMethods;
     let route;
+    let path = (Prefix + pattern).replace(/[\/]+/g, '/');
     for (let method in availableMethods) {
         if (!availableMethods.hasOwnProperty(method)
             || typeof availableMethods[method] !== 'string'
@@ -64,16 +72,20 @@ RoutingStrategy = function (Router, Routed) {
         if (typeof fn !== 'function') {
             continue;
         }
+
         route = fn.call(
             Router,
-            pattern,
+            path,
             Route.__handleSucceed.bind(Route), // add binding
             Route.__handleError.bind(Route) // add binding
         );
     }
     if (typeof route === 'function') {
-        Route.next(route);
+        Router.group(path, (router) => {
+            Route.next(router, Router, route);
+        });
     }
+
     return RoutingStrategy;
 };
 

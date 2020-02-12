@@ -1,6 +1,6 @@
 class Ip extends Routing {
     getPattern() {
-        return '/ip';
+        return '/';
     }
 
     getMethods() {

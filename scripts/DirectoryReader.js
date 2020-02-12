@@ -14,10 +14,10 @@ module.exports = (directory, succeed, ...arg) => {
                 continue;
             }
             let RouterFile = paths + '/index.js';
-            if (!fs.existsSync(RouterFile) && fs.lstatSync(RouterFile).isFile()) {
-                continue;
-            }
             try {
+                if (!fs.existsSync(RouterFile) && fs.lstatSync(RouterFile).isFile()) {
+                    continue;
+                }
                 succeed(routeName, RouterFile, ...arg);
             } catch (e) {
                 // pas

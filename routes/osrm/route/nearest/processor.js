@@ -7,7 +7,6 @@ module.exports = async (query, timeoutProcessSecond) => {
     } else if (timeoutProcessSecond > 60) {
         timeoutProcessSecond = 60;
     }
-
     const osrm = require('../../helper/osrm.js')();
     if (typeof osrm === 'object' && typeof osrm.code === 'number') {
         return osrm;
@@ -23,16 +22,10 @@ module.exports = async (query, timeoutProcessSecond) => {
     // continue_straight: (bool) Forces the route to keep going straight at waypoints and don't do a uturn even if it would be faster.
     let {
         coordinates,
-        alternateRoute,
-        alternatives,
-        overview,
-        geometries,
-        annotations,
         snapping,
         radiuses,
-        steps,
-        continue_straight,
-        responseCoordinates
+        responseCoordinates,
+        number
     } = require('../../helper/paramdata')(query);
 
     if (!coordinates.length) {
@@ -42,7 +35,7 @@ module.exports = async (query, timeoutProcessSecond) => {
         };
     }
 
-    if (coordinates.length < 2) {
+    if (coordinates.length < 1) {
         return {
             code: 412,
             message: "412 Precondition Failed. Invalid source or target position."
@@ -54,24 +47,18 @@ module.exports = async (query, timeoutProcessSecond) => {
     }
 
     let queries = {
-        coordinates: responseCoordinates.coordinates.array,
-        alternateRoute: alternateRoute,
-        alternatives: alternatives,
-        overview: overview,
-        geometries: geometries,
-        annotations: annotations,
+        coordinates: [responseCoordinates.coordinates.array.shift()],
         snapping: snapping,
         radiuses: radiuses,
-        steps: steps,
-        continue_straight: continue_straight,
+        number: number,
+        // bearings: [[0,20]]
     };
-
     // freed
     query = null;
     let response,
         q;
     try {
-        osrm.route(queries, (err, result) => {
+        osrm.nearest(queries, (err, result) => {
             if (err) {
                 response = {
                     code: 500,
@@ -80,7 +67,7 @@ module.exports = async (query, timeoutProcessSecond) => {
                 return response;
             }
             q = queries;
-            q.coordinates = responseCoordinates.coordinates.object;
+            q.coordinates = [responseCoordinates.coordinates.object.shift()];
             queries = false;
             response = {
                 data: {
