@@ -26,21 +26,9 @@ class PolylineDecode extends Routing
             if (typeof data !== 'object') {
                 return this.failed(res, '417 Expectation Failed. Could not decode polyline');
             }
-            for (let i in data) {
-                if (!data.hasOwnProperty(i)) {
-                    continue;
-                }
-                data[i] = [
-                    data[i].pop(),
-                    data[i].pop(),
-                ];
-            }
             return this.success(
                 res,
-                {
-                    note    : "Location array sorted by longitude first.",
-                    result  : data
-                }
+                data
             )
         } catch (e) {
             return this.error(res, e);
