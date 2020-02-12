@@ -25,12 +25,13 @@ class PolylineDecode extends Routing
             let data = Poly.decode(polyline);
             return this.success(
                 res,
-                {
-                    request: {
-                        data: polyline,
-                    },
-                    result: data,
-                }
+                data
+                // {
+                //     request: {
+                //         data: polyline,
+                //     },
+                //     result: data,
+                // }
             )
         } catch (e) {
             return this.error(res, e);
