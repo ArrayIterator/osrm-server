@@ -186,6 +186,13 @@ function Serve() {
                 message = {message: message};
             }
         }
+        if (typeof message === 'string') {
+            message = {message: message};
+        }
+        // fallback default
+        if (typeof message.message !== 'string') {
+            message = {message :STATUS_CODES[statusCode]};
+        }
 
         if (isCompressed) {
             message = JSON.stringify(message);
