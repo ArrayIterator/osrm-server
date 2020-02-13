@@ -326,3 +326,38 @@ ip
         2. ?ip=2001:4860:4860::8888
 
 ```
+
+## RESPONSE
+> ERROR
+
+Error Response determine by http code (please check the http code)
+
+```json
+{
+  "message": "(string) error message"
+}
+```
+
+If another key is below of message, it means error information about engine / request.
+
+> OSRM Route Response succeed (200)
+
+Succeed response only contain 1 main key `data`.
+And the result is on subtree data, and the main result is on `data.result`
+
+
+```json
+{
+    "data": {
+        "note": "(string) optionals maybe not shown, cause this is informational",
+        "request": {
+            "queries": {
+                "object_queries_lists[]": "(object) key & data to used on osrm tools. Declare follow by requests"
+            }
+        },
+        "result": {
+            "object_result_lists[]": "(object) response result data."
+        }
+    }
+}
+```
