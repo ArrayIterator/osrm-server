@@ -21,7 +21,7 @@ Please, make sure you have read about all section, start from headers, route pat
 
 This API currently does not support `hints` parameter, that provide by OSRM.
 
-This just because the system will crash / error if invalid hints given.
+This just because the system will crash / error when invalid `hints` parameter given.
 
 
 ### OSRM
