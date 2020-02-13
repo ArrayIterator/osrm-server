@@ -93,7 +93,7 @@ number
     - Default  : 1
     - Required : false
     - Example  :
-        1. ?nearest=10&coordinates=xxxx,xxx|xxx,xxx
+        1. ?number=10&coordinates=xxxx,xxx|xxx,xxx
 
 ```
 
