@@ -34,7 +34,11 @@ module.exports = async (query, timeoutProcessSecond) => {
         continue_straight,
         responseCoordinates,
         bearings,
-        approaches
+        approaches,
+        fallback_coordinate,
+        fallback_speed,
+        scale_factor,
+        destinations
     } = require('../../helper/paramdata')(query);
 
     if (!coordinates.length) {
@@ -60,27 +64,50 @@ module.exports = async (query, timeoutProcessSecond) => {
     if (responseCoordinates.error) {
         return responseCoordinates.error;
     }
+    // temp
+    let __annotations = ['duration', 'distance'];
+    let _annotations = [];
+    annotations = annotations || [];
+    if (annotations.indexOf('duration')) {
+        _annotations.push('duration');
+    }
+    if (annotations.indexOf('distance')) {
+        _annotations.push('distance');
+    }
+    if (_annotations.length === 0) {
+        _annotations = __annotations;
+    }
     let queries = {
         coordinates: responseCoordinates.coordinates.array,
         alternateRoute: alternateRoute,
         alternatives: alternatives,
         overview: overview,
         geometries: geometries,
-        annotations: annotations,
+        annotations: _annotations,
         snapping: snapping,
         steps: steps,
         continue_straight: continue_straight,
         radiuses: radiuses,
         bearings: bearings,
-        approaches: approaches
+        approaches: approaches,
+        fallback_coordinate: fallback_coordinate
     };
+    if (fallback_speed) {
+        queries.fallback_speed = fallback_speed;
+    }
+    if (scale_factor) {
+        queries.scale_factor = scale_factor;
+    }
+    if (destinations) {
+        queries.destinations = destinations;
+    }
 
     // freed
     query = null;
     let response,
         q;
     try {
-        osrm.route(queries, (err, result) => {
+        osrm.table(queries, (err, result) => {
             if (err) {
                 response = {
                     code: 500,
@@ -97,7 +124,7 @@ module.exports = async (query, timeoutProcessSecond) => {
                     request: {
                         queries: q
                     },
-                    result: {},
+                    result: {}
                 }
             };
             for (let k in result) {

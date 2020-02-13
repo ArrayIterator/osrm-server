@@ -104,9 +104,14 @@ function Serve() {
                 message: message + ' ' + STATUS_CODES[message]
             };
         } else {
+            // console.log(Object.prototype.toString.call(message.message))
             if (arguments.length < 3 || typeof statusCode !== "number" || !STATUS_CODES[statusCode]) {
                 let statusC;
-                if (message && typeof message === 'object' && !message instanceof Error) {
+                if (typeof message.message === 'object' && message.message instanceof Error) {
+                    message = message.message;
+                    statusC = STATUS_CODES[message.code] ? message.code : 500;
+                }
+                if (!statusC && message && typeof message === 'object' && !message instanceof Error) {
                     if (typeof message['code'] === 'number'
                         && STATUS_CODES[message['code']]
                     ) {
@@ -132,6 +137,12 @@ function Serve() {
                 statusCode = statusC;
             } else if (typeof message === "string") {
                 message = {message: message};
+            } else if (typeof message === 'object'
+                && typeof message.message === 'object'
+                && message.message instanceof Error
+            ) {
+                message = message.message;
+                statusCode = STATUS_CODES[message.code] ? message.code : 500;
             }
 
             if (typeof message === "undefined") {
@@ -157,11 +168,22 @@ function Serve() {
                 statusCode = 500;
             }
 
-            if (message.trace && message.trace.stack && typeof message.trace.stack === 'string'
-                && typeof global.RootPath === 'string'
+            if (message
+                && typeof message == 'object'
+                && typeof message.trace === 'object'
+                && message.trace.stack
+                && typeof message.trace.stack === 'string'
             ) {
-                let reg = new RegExp(global.RootPath, 'g');
-                message.trace.stack = message.trace.stack.replace(reg, '${RootPath}');
+                let trace = message.trace.stack;
+                if (typeof global.RootPath === 'string') {
+                    let reg = new RegExp(global.RootPath, 'g');
+                    trace = trace.replace(reg, '${RootPath}');
+                }
+                message.trace.stack = trace;
+            }
+
+            if (typeof message !== 'object' || typeof message.message === 'undefined') {
+                message = {message: message};
             }
         }
 
@@ -170,6 +192,7 @@ function Serve() {
         } else {
             message = JSON.stringify(message, null, 4);
         }
+        // console.log(message);
         if (typeof statusCode !== 'number') {
             statusCode = 500;
         }

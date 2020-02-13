@@ -78,7 +78,7 @@ module.exports = () => {
                 global.Request = Request;
                 global.Compressed = !(
                     (
-                        headers['x-minify'] && headers['x-minify'].toString().match(/^\s*(true|1|yes|on)\s*$/gi)
+                        headers['x-compress'] && headers['x-compress'].toString().match(/^\s*(true|1|yes|on)\s*$/gi)
                     )
                     || !Request.query.compress
                     || !Request.query.compress.toString()
@@ -116,7 +116,7 @@ module.exports = () => {
             app.use(bodyParser.urlencoded({extended: true}));
             this.use((Request, Response, Next) => {
                 let headers = Request.headers;
-                if (headers['x-minify'] !== undefined) {
+                if (headers['x-compress'] !== undefined) {
                     Next();
                     return;
                 }

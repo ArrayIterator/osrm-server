@@ -1,6 +1,6 @@
 const Poly = require('@mapbox/polyline');
-class PolylineDecode extends Routing
-{
+
+class PolylineDecode extends Routing {
     getPattern() {
         return '/decode/?'
     }
@@ -34,6 +34,7 @@ class PolylineDecode extends Routing
             return this.error(res, e);
         }
     }
+
     next(Router) {
         // pas
     }

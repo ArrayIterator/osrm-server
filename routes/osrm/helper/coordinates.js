@@ -120,6 +120,9 @@ module.exports = (coordinates) => {
         _coordinates.push({lon: startLon, lat: startLat});
         newCoordinates.push([startLon, startLat]);
     }
+    if (error) {
+        response.error = error;
+    }
     response.coordinates.array = newCoordinates;
     response.coordinates.object = _coordinates;
     return response;

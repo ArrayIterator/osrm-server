@@ -25,7 +25,9 @@ module.exports = async (query, timeoutProcessSecond) => {
         snapping,
         radiuses,
         responseCoordinates,
-        number
+        number,
+        bearings,
+        approaches
     } = require('../../helper/paramdata')(query);
 
     if (!coordinates.length) {
@@ -35,24 +37,33 @@ module.exports = async (query, timeoutProcessSecond) => {
         };
     }
 
-    if (coordinates.length < 1) {
+    if (coordinates.length < 1
+        || responseCoordinates.coordinates.array.length < 1
+    ) {
+        if (responseCoordinates.error) {
+            return responseCoordinates.error;
+        }
         return {
             code: 412,
             message: "412 Precondition Failed. Invalid source or target position."
         };
     }
 
-    if (responseCoordinates.error) {
-        return responseCoordinates.error;
-    }
 
+    // if (responseCoordinates.error) {
+    //    return responseCoordinates.error;
+    //}
+
+    let arr = [responseCoordinates.coordinates.array.shift()];
     let queries = {
-        coordinates: [responseCoordinates.coordinates.array.shift()],
+        coordinates: arr,
         snapping: snapping,
-        radiuses: radiuses,
+        radiuses: [radiuses.shift()],
         number: number,
-        // bearings: [[0,20]]
+        approaches: [approaches.shift()],
+        bearings: [bearings.shift()]
     };
+
     // freed
     query = null;
     let response,
@@ -74,14 +85,15 @@ module.exports = async (query, timeoutProcessSecond) => {
                     note: "Location array sorted by longitude first.",
                     request: {
                         queries: q
-                    }
+                    },
+                    result: {}
                 }
             };
             for (let k in result) {
                 if (!result.hasOwnProperty(k)) {
                     continue;
                 }
-                response.data[k] = result[k];
+                response.data.result[k] = result[k];
             }
             result = null;
             return response;
@@ -94,7 +106,8 @@ module.exports = async (query, timeoutProcessSecond) => {
                 code: response.code
             }
         }
-        if (response.data === undefined && response.message.toString().match(/nosegment/gi)) {
+
+        if (response.data === undefined && response.message.toString().match(/nosegment|noroute/gi)) {
             return {
                 message: 'Could not find data within given request.',
                 request: {
@@ -106,7 +119,7 @@ module.exports = async (query, timeoutProcessSecond) => {
 
         return response;
     } catch (e) {
-        if (e.message.match(/nosegment/gi)) {
+        if (e.message.match(/nosegment|noroute/gi)) {
             return {
                 message: 'Could not find data within given request.',
                 request: {

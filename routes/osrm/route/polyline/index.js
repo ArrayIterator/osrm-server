@@ -1,5 +1,4 @@
-class PolylineEncode extends Routing
-{
+class PolylineEncode extends Routing {
     getPattern() {
         return '/'
     }
@@ -14,7 +13,7 @@ class PolylineEncode extends Routing
             {
                 message: '404 Not Found',
                 routes: {
-                    '/decode' : 'Decode Poyline'
+                    '/decode': 'Decode Poyline'
                 }
             }
         );
@@ -24,4 +23,5 @@ class PolylineEncode extends Routing
         RoutingStrategy('/', Router, require('./decode'));
     }
 }
+
 module.exports = PolylineEncode;
