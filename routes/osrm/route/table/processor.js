@@ -31,7 +31,6 @@ module.exports = async (query, timeoutProcessSecond) => {
         snapping,
         radiuses,
         steps,
-        continue_straight,
         responseCoordinates,
         bearings,
         approaches,
@@ -79,14 +78,9 @@ module.exports = async (query, timeoutProcessSecond) => {
     }
     let queries = {
         coordinates: responseCoordinates.coordinates.array,
-        alternateRoute: alternateRoute,
-        alternatives: alternatives,
-        overview: overview,
-        geometries: geometries,
         annotations: _annotations,
         snapping: snapping,
         steps: steps,
-        continue_straight: continue_straight,
         radiuses: radiuses,
         bearings: bearings,
         approaches: approaches,
