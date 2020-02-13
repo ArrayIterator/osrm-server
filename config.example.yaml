@@ -6,7 +6,9 @@ auth:
 # String contains ${root}, ${data}, ${scripts}, ${public}
 # WILL BE REPLACE
 osrm:
+  # OSRM File to read ( we only currently support indonesia)
   path: ${data}/osrm/indonesia-latest.osrm
 geoip:
+  # GEO IP FILE
   country: ${data}/geoip/GeoIP-Country.mmdb
   city: ${data}/geoip/GeoIP-City.mmdb

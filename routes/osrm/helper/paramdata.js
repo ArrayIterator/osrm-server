@@ -58,29 +58,22 @@ module.exports = (query) => {
                     if (type.indexOf(typeof coordinates[c]['lat']) > -1
                         && type.indexOf(typeof coordinates[c]['lon']) > -1
                     ) {
-                        if (typeof coordinates[c]['lat'] === 'string') {
-                            coordinates[c]['lat'] = coordinates[c]['lat'].trim().replace(/(^[\s,]+|[\s,]+$)/, '');
-                        }
-                        if (typeof coordinates[c]['lon'] === 'string') {
-                            coordinates[c]['lon'] = coordinates[c]['lon'].trim().replace(/(^[\s,]+|[\s,]+$)/, '');
-                        }
+                        coordinates[c]['lat'] = coordinates[c]['lat'].toString().trim().replace(/(^[\s,]+|[\s,]+$)/, '');
+                        coordinates[c]['lon'] = coordinates[c]['lon'].toString().trim().replace(/(^[\s,]+|[\s,]+$)/, '');
                         __coordinates.push(coordinates[c]['lon'], coordinates[c]['lat']);
                         continue;
                     }
                     if (type.indexOf(typeof coordinates[c]['latitude']) > -1
                         && type.indexOf(typeof coordinates[c]['longitude']) > -1
                     ) {
-                        if (typeof coordinates[c]['latitude'] === 'string') {
-                            coordinates[c]['latitude'] = coordinates[c]['latitude'].trim().replace(/(^[\s,]+|[\s,]+$)/, '');
-                        }
-                        if (typeof coordinates[c]['longitude'] === 'string') {
-                            coordinates[c]['longitude'] = coordinates[c]['longitude'].trim().replace(/(^[\s,]+|[\s,]+$)/, '');
-                        }
-
+                        coordinates[c]['latitude'] = coordinates[c]['latitude'].toString().trim().replace(/(^[\s,]+|[\s,]+$)/, '');
+                        coordinates[c]['longitude'] = coordinates[c]['longitude'].toString().trim().replace(/(^[\s,]+|[\s,]+$)/, '');
                         __coordinates.push(coordinates[c]['lon'], coordinates[c]['lat']);
                         continue;
                     }
-                    if (typeof coordinates[c].length === "number" && coordinates[c].length > 1) {
+                    if (Object.prototype.toString.call(coordinates[c]) === "[object Array]"
+                        && coordinates[c].length > 1
+                    ) {
                         let _co = [];
                         for (let k in coordinates[c]) {
                             if (!coordinates[c].hasOwnProperty(k)) {
@@ -109,24 +102,26 @@ module.exports = (query) => {
         return [];
     };
 
+    query.coordinate = query.coordinate || undefined;
     queries.coordinates = getCoordinates(query.coordinates || query.coordinate || null);
     queries.responseCoordinates = require('./coordinates.js')(queries.coordinates);
-    let annotationated = typeof query.annotations !== "undefined"
+    query.annotation = query.annotation || undefined;
+    let annotating = typeof query.annotations !== "undefined"
         ? query.annotations
         : (typeof query.annotation !== "undefined"
                 ? query.annotation
                 : null
         );
 
-    if (annotationated !== null) {
+    if (annotating !== null) {
         let availableAnnotations = [
             'duration', 'nodes', 'distance', 'weight', 'datasources', 'speed'
         ];
         let annotations = false;
         let continueAnnotation = false;
         let _annotations = null;
-        if (typeof annotationated === 'string') {
-            _annotations = annotationated
+        if (typeof annotating === 'string') {
+            _annotations = annotating
                 .replace(/\s*/g, '')
                 .replace(/[,]+/g, ',')
                 .replace(/(^[,]+|[,]+$)/g, '')
@@ -142,21 +137,21 @@ module.exports = (query) => {
             } else {
                 continueAnnotation = true;
             }
-        } else if (typeof annotationated === "object") {
+        } else if (typeof annotating === "object") {
             _annotations = [];
-            for (let k in annotationated) {
-                if (!annotationated.hasOwnProperty(k)) {
+            for (let k in annotating) {
+                if (!annotating.hasOwnProperty(k)) {
                     continue;
                 }
-                annotationated[k] = _annotations = annotationated.annotations
+                annotating[k] = _annotations = annotating.annotations
                     .replace(/\s*/g, '')
                     .replace(/[,]+/g, ',')
                     .replace(/(^[,]+|[,]+$)/g, '')
                     .replace(/node(,|$)/g, 'nodes$1')
                     .replace(/distances?/g, 'distance')
                     .toLowerCase();
-                if (annotationated[k] !== '') {
-                    _annotations.push(annotationated[k]);
+                if (annotating[k] !== '') {
+                    _annotations.push(annotating[k]);
                 }
             }
             continueAnnotation = true;
@@ -188,17 +183,17 @@ module.exports = (query) => {
         }
         queries.annotations = annotations;
     }
+
+    query.snappings = query.snappings || undefined;
     let snapping = typeof query.snapping !== 'undefined'
         ? query.snapping
         : (typeof query.snappings !== 'undefined' ? query.snappings : null);
-    if (query.snapping) {
-        snapping = 'default';
-        if (typeof query.snapping === 'string' && query.snapping.match(/^\s*any\*$/gi)) {
-            snapping = 'any';
-        }
-        queries.snapping = snapping;
-    }
+    queries.snapping = typeof snapping === 'string' && snapping.match(/^\s*any\*$/gi)
+        ? 'any'
+        : 'default';
 
+
+    query.alternative = query.alternative || undefined;
     let alternatives = typeof query.alternatives === 'undefined'
         ? (typeof query.alternative === "undefined" ? null : query.alternative)
         : query.alternatives;
@@ -216,6 +211,7 @@ module.exports = (query) => {
 
     queries.alternateRoute = typeof alternatives === 'number' && alternatives > 0 || alternatives === true;
     queries.alternatives = typeof alternatives === 'number' ? alternatives : 0;
+    query.geometry = query.geometry || undefined;
     let geometry = typeof query.geometries === 'undefined'
         ? (typeof query.geometry === "undefined" ? 'polyline' : query.geometry)
         : 'polyline';
@@ -371,13 +367,25 @@ module.exports = (query) => {
                         .split(',');
                 }
                 let bearing = bearings[c];
-                if (!bearing || typeof bearing !== 'object'
-                    || typeof bearing.length !== "number"
+                if (Object.prototype.toString.call(bearing) !== "[object Object]") {
+                    let _bearing = bearing;
+                    bearing = [];
+                    for (let k1 in _bearing) {
+                        if (!_bearing.hasOwnProperty(k1)) {
+                            continue;
+                        }
+                        bearing.push(_bearing);
+                    }
+                }
+
+                if (!bearing
+                    || Object.prototype.toString.call(bearing) !== "[object Array]"
                     || bearing.length < 2
                 ) {
                     __bearings.push(null);
                     continue;
                 }
+
                 let type = ['number', 'string'];
                 let _co = [];
                 for (let k in bearing) {
@@ -419,6 +427,8 @@ module.exports = (query) => {
             return [];
         }
     };
+
+    query.bearing = query.bearing || undefined;
     let bearings = getBearings(
         typeof query.bearings !== 'undefined'
             ? query.bearings
@@ -448,9 +458,6 @@ module.exports = (query) => {
         if (radius && typeof radius === 'object') {
             let __radius = [];
             for (let c in radius) {
-                if (!radius.hasOwnProperty(c)) {
-                    continue;
-                }
                 let type = ['number', 'string'];
                 if (type.indexOf(typeof radius[c]) < 0) {
                     continue;
@@ -477,6 +484,7 @@ module.exports = (query) => {
         }
         return [];
     };
+    query.radius = query.radius || undefined;
     let radius = getRadius(typeof query.radiuses !== 'undefined'
         ? query.radiuses
         : (typeof query.radius !== 'undefined' ? query.radius : null)
@@ -521,6 +529,7 @@ module.exports = (query) => {
         return [];
     };
 
+    query.approach = query.approach || undefined;
     let approaches = getApproaches(typeof query.approaches !== 'undefined'
         ? query.approaches
         : (typeof query.approach !== 'undefined' ? query.approach : null)

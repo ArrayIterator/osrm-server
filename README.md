@@ -23,6 +23,9 @@ lua5.2 liblua5.2-dev libtbb-dev libstdc++-5-dev
 
 see [https://github.com/Project-OSRM/osrm-backend](https://github.com/Project-OSRM/osrm-backend)
 
+Follow OSRM data storage [README.md](storage/data/osrm/README.md);
+
+
 ### DEPENDS NODE
 
 - osrm@^5.22.0
@@ -152,3 +155,13 @@ server {
 }
 
 ```
+
+### AUTHOR
+
+Github : [@ArrayIterator](https://github.com/ArrayIterator)
+
+
+### LICENSE
+
+[MIT LICENSE](LICENSE)
+
