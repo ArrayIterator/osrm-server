@@ -23,10 +23,6 @@ module.exports = async (query, timeoutProcessSecond) => {
     // continue_straight: (bool) Forces the route to keep going straight at waypoints and don't do a uturn even if it would be faster.
     let {
         coordinates,
-        alternateRoute,
-        alternatives,
-        overview,
-        geometries,
         annotations,
         snapping,
         radiuses,
