@@ -4,7 +4,7 @@ module.exports = class Country extends Routing {
         return 'ALL';
     }
     getPattern() {
-        return /^\/(?:([^\/]+)?\/?)/g;
+        return /^\/(?:([^\/]+)?\/?)/;
     }
 
     getDescription() {

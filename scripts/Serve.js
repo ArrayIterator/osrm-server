@@ -68,7 +68,7 @@ const STATUS_CODES = {
 
 function Serve() {
     let S = Serve;
-    S.success = (res, message, statusCode = 200, isCompressed) => {
+    S.success = function(res, message, statusCode = 200, isCompressed) {
         res = res || global.Response || Object.create(resp, {
             app: {configurable: true, enumerable: true, writable: true, value: Application || Express}
         });
@@ -83,6 +83,16 @@ function Serve() {
             res = global.Response || Object.create(resp, {
                 app: {configurable: true, enumerable: true, writable: true, value: Application || Express}
             });
+        } else if (arguments.length < 3) {
+            if (typeof message === 'number' || arguments.length < 2) {
+                if (arguments.length < 2) {
+                    message = 200;
+                }
+                statusCode = STATUS_CODES[message] !== undefined
+                    ? statusCode
+                    : 200;
+                message = statusCode + ' ' + STATUS_CODES[statusCode];
+            }
         }
         isCompressed = isCompressed === undefined
             ? global.Compressed || false
