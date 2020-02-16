@@ -4,11 +4,18 @@ module.exports = (coordinates) => {
     let minLat = -90;
     let maxLon = 180;
     let minLon = -180;
+    // used based on countries.json
+    let maxMin = {
+        minLat: -10.359987,
+        minLon: 95.293026,
+        maxLat: 5.479821,
+        maxLon: 141.033852
+    };
 
-    let indonesiaMaxLat = 6.5;
-    let indonesiaMinLat = -11.5;
-    let indonesiaMaxLon = 141;
-    let indonesiaMinLon = 94;
+    let indonesiaMaxLat = maxMin.maxLat;
+    let indonesiaMinLat = maxMin.minLat;
+    let indonesiaMaxLon = maxMin.maxLon;
+    let indonesiaMinLon = maxMin.minLon;
     let response = {
         limit: {
             maxLat: maxLat,
