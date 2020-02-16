@@ -79,15 +79,18 @@ module.exports = () => {
                 let min = global.Config.get('minify') === true;
                 let reg = min ? /^\s*(off|0|false|no)\s*$/gi : /^\s*(true|1|yes|on)\s*$/gi;
                 let minify = min;
+                let changed = false;
                 if (headers['x-compress']) {
+                    changed = true;
                     minify = !!(headers['x-compress'].toString().match(reg))
                 } else if (Request.query.compress) {
+                    changed = true;
                     minify = !!(Request.query.compress.toString()
                         .replace(/\s*/, '')
                         .match(reg)
                     );
                 }
-                if (min) {
+                if (min && changed) {
                     minify = !minify;
                 }
                 global.Compressed = minify;
