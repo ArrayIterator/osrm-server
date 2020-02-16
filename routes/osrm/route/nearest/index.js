@@ -2,6 +2,9 @@ class Nearest extends Routing {
     getMethods() {
         return 'GET';
     }
+    getDescription() {
+        return 'Snaps a coordinate to the street network and returns the nearest n matches.';
+    }
 
     getPattern() {
         return '/'

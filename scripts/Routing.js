@@ -2,6 +2,10 @@ class Routing {
     constructor(Serve) {
         this.serve = Serve;
     }
+    getDescription()
+    {
+        return '';
+    }
 
     // --- START SERVING
     notfound(res, message) {
@@ -25,7 +29,7 @@ class Routing {
     }
 
     expectation(res, message) {
-        return this.serve.exception(...arguments);
+        return this.serve.internal(...arguments);
     }
 
     required(res, message) {
@@ -46,7 +50,7 @@ class Routing {
     }
 
     getMethods() {
-        return ['all'];
+        return ['ALL'];
     }
 
     /**

@@ -1,26 +1,20 @@
-class PolylineEncode extends Routing {
+class PolylineEncode extends require('../../../../scripts/BaseRoute') {
     getPattern() {
         return '/'
+    }
+
+    getDescription() {
+        return 'Polyline helper to interact with coordinates data.';
     }
 
     getMethods() {
         return 'ALL';
     }
 
-    route(req, res, next) {
-        return this.notfound(
-            res,
-            {
-                message: '404 Not Found',
-                routes: {
-                    '/decode': 'Decode Poyline'
-                }
-            }
-        );
-    }
-
     next(Router, Route) {
-        RoutingStrategy('/', Router, require('./decode'));
+        this.routes = {
+            '/decode': RoutingStrategy('/', Router, require('./decode'))
+        };
     }
 }
 

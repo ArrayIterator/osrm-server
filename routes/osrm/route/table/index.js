@@ -2,6 +2,9 @@ class Route extends Routing {
     getPattern() {
         return '/'
     }
+    getDescription() {
+        return 'Computes duration table for the given locations. Allows for both symmetric and asymmetric tables. Optionally returns distance table.';
+    }
 
     getMethods() {
         return ['POST', 'GET'];

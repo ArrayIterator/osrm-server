@@ -1,4 +1,5 @@
 const resp = require('express/lib/response');
+const extend = require('./Extends');
 const STATUS_CODES = {
     100: 'Continue',
     101: 'Switching Protocols',
@@ -71,6 +72,18 @@ function Serve() {
         res = res || global.Response || Object.create(resp, {
             app: {configurable: true, enumerable: true, writable: true, value: Application || Express}
         });
+        if (typeof res.status !== 'function') {
+            if (arguments.length < 3) {
+                statusCode = typeof message === 'number'
+                    && statusCode[message] !== undefined
+                    ? message
+                    : statusCode;
+                message = res;
+            }
+            res = global.Response || Object.create(resp, {
+                app: {configurable: true, enumerable: true, writable: true, value: Application || Express}
+            });
+        }
         isCompressed = isCompressed === undefined
             ? global.Compressed || false
             : isCompressed;
@@ -191,7 +204,11 @@ function Serve() {
         }
         // fallback default
         if (typeof message.message !== 'string') {
-            message = {message :STATUS_CODES[statusCode]};
+            if (typeof message.message === 'object') {
+                message = extend({message :STATUS_CODES[statusCode]}, message.message);
+            } else {
+                message = {message: STATUS_CODES[statusCode]};
+            }
         }
 
         if (isCompressed) {

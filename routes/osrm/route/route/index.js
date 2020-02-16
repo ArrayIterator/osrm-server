@@ -2,6 +2,9 @@ class Route extends Routing {
     getPattern() {
         return '/'
     }
+    getDescription() {
+        return 'Returns the fastest route between two or more coordinates while visiting the waypoints in order.';
+    }
 
     getMethods() {
         return ['POST', 'GET'];

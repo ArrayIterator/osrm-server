@@ -4,6 +4,9 @@ class PolylineDecode extends Routing {
     getPattern() {
         return '/decode/?'
     }
+    getDescription() {
+        return 'Decode polyline string to array coordinates.';
+    }
 
     getMethods() {
         return ['POST', 'GET'];

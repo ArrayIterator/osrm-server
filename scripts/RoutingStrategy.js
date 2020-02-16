@@ -1,7 +1,7 @@
 RoutingStrategy = function (Prefix, Router, Routed) {
     const serve = Express.Serve;
     if (typeof Prefix !== 'string') {
-        return RoutingStrategy;
+        return;
     }
     if (Prefix.trim() === '' || Prefix[0] !== '/') {
         Prefix = '/' + Prefix.trim();
@@ -12,7 +12,7 @@ RoutingStrategy = function (Prefix, Router, Routed) {
         || typeof Router.params !== 'object'
         || typeof Router.stack !== 'object'
     ) {
-        return RoutingStrategy;
+        return;
     }
 
     let Route = Routed;
@@ -21,16 +21,19 @@ RoutingStrategy = function (Prefix, Router, Routed) {
         inFn = true;
         Route = new Route(serve);
     }
-    if (!Route instanceof Routing) {
-        return RoutingStrategy;
+    if (!Route || !Route instanceof Routing) {
+        return;
     }
 
-    if (!inFn) {
-        Route.constructor(serve);
+    if (!inFn || !Route.serve) {
+        Route.serve = serve;
     }
+
     let pattern = Route.getPattern();
-    if (typeof pattern !== 'string') {
-        return RoutingStrategy;
+    if (Object.prototype.toString.call(pattern) !== '[object String]'
+        && Object.prototype.toString.call(pattern) !== '[object RegExp]'
+    ) {
+        return;
     }
 
     let methods = Route.getMethods();
@@ -39,7 +42,7 @@ RoutingStrategy = function (Prefix, Router, Routed) {
     }
 
     if (typeof methods !== 'object') {
-        return RoutingStrategy;
+        return;
     }
 
     let availableMethods = [];
@@ -58,7 +61,13 @@ RoutingStrategy = function (Prefix, Router, Routed) {
 
     Route.availableMethods = availableMethods;
     let route;
-    let path = (Prefix + pattern).replace(/[\/]+/g, '/');
+    let path;
+    if (typeof pattern === 'string') {
+        path = pattern.replace(/[\/]+/g, '/');
+    } else {
+        path = pattern;
+    }
+
     for (let method in availableMethods) {
         if (!availableMethods.hasOwnProperty(method)
             || typeof availableMethods[method] !== 'string'
@@ -73,20 +82,18 @@ RoutingStrategy = function (Prefix, Router, Routed) {
             continue;
         }
 
-        route = fn.call(
+        route = Router.group(Prefix, (Router) => fn.call(
             Router,
             path,
             Route.__handleSucceed.bind(Route), // add binding
             Route.__handleError.bind(Route) // add binding
-        );
-    }
-    if (typeof route === 'function') {
-        Router.group(path, (router) => {
-            Route.next(router, Router, route);
-        });
+        ));
+        if (typeof route === 'function') {
+            Router.group(Prefix, (Router) => Route.next(Router, route));
+        }
     }
 
-    return RoutingStrategy;
+    return Route;
 };
 
 RoutingStrategy.Route

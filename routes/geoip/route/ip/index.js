@@ -7,6 +7,10 @@ class Ip extends Routing {
         return 'GET';
     }
 
+    getDescription() {
+        return 'Get information followed by ip address.';
+    }
+
     async route(req, res, next) {
         const MaxMind = require('maxmind');
         const fs = require('fs');
