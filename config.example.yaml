@@ -2,6 +2,9 @@ auth:
   "example-auth-token": "username"
   "example-auth-hash2" : "username2"
 
+# Result without JSON prettify
+minify: false
+
 # OSRM PATH
 # String contains ${root}, ${data}, ${scripts}, ${public}
 # WILL BE REPLACE

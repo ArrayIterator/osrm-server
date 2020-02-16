@@ -9,7 +9,7 @@ Please, make sure you have read about all section, start from headers, route pat
 
 > PARAMETERS
 
-- `compress` to compress response (minify)
+- `compress` to compress response (minify) - off|false|0 to disable , true|1|on to enable
 - `token` to use token as authenticate (if no `x-auth-token`) - mandatory
 
 > HEADERS
