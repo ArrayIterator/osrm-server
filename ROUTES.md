@@ -327,6 +327,35 @@ ip
 
 ```
 
+### GEOIP
+
+- Prefix : `/geojson/`
+
+| PATH              | METHOD        | NOTES                              |
+| ------------------|---------------|------------------------------------|
+| `/country`        | ALL           | Get geo json data all countries.   |
+| `/country/{code}` | ALL           | Get by given code or country name. |
+
+
+> AVAILABLE PARAMETERS
+
+
+> PLACEHOLDER
+
+```
+code
+    - Aliases   :
+    - Type      : (string)
+    - Note      : 3 DIGIT ISO 3166 or country name (case insensitive)
+    - Values    : (country code / name)
+    - Default   : 
+    - Required  : true (for mandatory) and empty to list all default countries.json
+    - Example   :
+        1. /geojson/country/IDN
+        1. /geojson/country/Indonesia
+
+```
+
 ## RESPONSE
 > ERROR
 
@@ -357,6 +386,43 @@ And the result is on subtree data, and the main result is on `data.result`
         },
         "result": {
             "object_result_lists[]": "(object) response result data."
+        }
+    }
+}
+```
+
+> GeoJSON By Country Route Response succeed (200)
+
+Succeed response only contain 1 main key `data`.
+And the result is on subtree data, and the main result is on `data.result`
+
+
+```json
+{
+    "data": {
+        "info": {
+            "latitude": {
+                "minimum": "(float) minimum latitude point.",
+                "maximum": "(float) maximum latitude point."
+            },
+            "longitude": {
+                "minimum": "(float) minimum longitude point.",
+                "maximum": "(float) maximum longitude point."
+            }
+        },
+        "result": {
+            "type": "FeatureCollection",
+            "features": {
+                "type": "Feature",
+                "id": "(string) 3 Digit Country Code",
+                "properties": {
+                    "name": "(string) Country Name"
+                },
+                "geometry": {
+                    "type": "(string) Polygon Type : MultiPolygon|Polygon",
+                    "coordinates": [["(object[]|object) multiple result of coordinates."]]
+                }
+            }
         }
     }
 }

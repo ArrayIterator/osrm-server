@@ -1,3 +1,4 @@
+const geo = require('../../geojson/helper/geo-json');
 module.exports = (coordinates) => {
 
     let maxLat = 90;
@@ -11,7 +12,13 @@ module.exports = (coordinates) => {
         maxLat: 5.479821,
         maxLon: 141.033852
     };
-
+    let rs = geo.code('IDN');
+    if (rs && rs.info) {
+        maxMin.minLat = rs.info.latitude.minimum;
+        maxMin.maxLat = rs.info.latitude.maximum;
+        maxMin.minLon = rs.info.longitude.minimum;
+        maxMin.maxLon = rs.info.longitude.maximum;
+    }
     let indonesiaMaxLat = maxMin.maxLat;
     let indonesiaMinLat = maxMin.minLat;
     let indonesiaMaxLon = maxMin.maxLon;
