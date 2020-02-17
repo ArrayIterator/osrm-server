@@ -76,7 +76,7 @@
         openmapsurfer: {
             name: 'Open Map Surfer',
             mode: {
-                hybrid: 'https://maps.heigit.org/openmapsurfer/tiles/hybrid/webmercator/{z}/{x}/{y}.png',
+                // hybrid: 'https://maps.heigit.org/openmapsurfer/tiles/hybrid/webmercator/{z}/{x}/{y}.png',
                 road: 'https://maps.heigit.org/openmapsurfer/tiles/roads/webmercator/{z}/{x}/{y}.png',
             }
         },
