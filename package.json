@@ -4,12 +4,13 @@
   "description": "",
   "main": "listener.js",
   "dependencies": {
-    "@mapbox/polyline": "github:mapbox/polyline",
     "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-group-routes": "^1.1.0",
     "maxmind": "^4.1.0",
     "osrm": "^5.22.0",
+    "polyline-encoded": "0.0.9",
     "yaml": "^1.7.2"
   },
   "devDependencies": {},

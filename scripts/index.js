@@ -1,13 +1,15 @@
 process.env.UV_THREADPOOL_SIZE = Math.ceil(require('os').cpus().length * 1.5);
 module.exports = () => {
     // echo
-    const path = require('path');
-    const fs = require('fs');
-    const express = require('express');
-    const bodyParser = require('body-parser');
-    const yaml = require('yaml');
-    const Configuration = require('./Config');
-    const groupRouter = require('express-group-routes');
+    const path = require('path'),
+        fs = require('fs'),
+        express = require('express'),
+        bodyParser = require('body-parser'),
+        yaml = require('yaml'),
+        cors = require('cors'),
+        Configuration = require('./Config'),
+        groupRouter = require('express-group-routes');
+
     let app = express();
     // add global
     global.Express = express;
@@ -70,6 +72,8 @@ module.exports = () => {
         global.tokens = token;
         try {
             let basePath = path.join(__dirname, '/../routes');
+            // add cors
+            app.use(cors())
             this.use((Request, Response, Next) => {
                 Response = require('./Response')(Request, Response);
                 let headers = Request.headers;

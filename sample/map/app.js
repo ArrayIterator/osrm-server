@@ -11,7 +11,7 @@
         // enable map control
         enableMapControl : true
     };
-    let map = new logislyMap(config)
+    let map = new LogislyMap(config)
         // on succeed
         .onSuccess((map, logisly_map) => {
             window.logisly = logisly_map;

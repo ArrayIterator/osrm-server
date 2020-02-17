@@ -1,4 +1,4 @@
-const Poly = require('@mapbox/polyline');
+const Poly = require('polyline-encoded');
 
 class PolylineDecode extends Routing {
     getPattern() {
