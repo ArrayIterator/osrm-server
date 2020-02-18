@@ -1,11 +1,13 @@
 "use strict";
 !(function (_win) {
+    const VERSION = '1.0.0';
     let
         exists, sc, css_,
         currentSrc = document.currentScript.src,
         _css = ['/css/map.package.css'],
         __process_dir = currentSrc.split('/').slice(0, -2).join('/'),
         wDir = __process_dir.replace(/^https?:/gi, '');
+    let ret = _win.document.head;
     for (let i = 0; _css.length > i; i++) {
         exists = false;
         css_ = wDir + _css[i];
@@ -17,7 +19,11 @@
             sc = document.createElement('link');
             sc.rel = 'stylesheet';
             sc.href = css_;
-            _win.document.head.appendChild(sc);
+            if (ret.getElementsByTagName('title').length) {
+                ret.prepend(ret.getElementsByTagName('title')[0], sc);
+                continue;
+            }
+            ret.prepend(sc);
         }
     }
     if (typeof _win.LogislyObjectMap !== 'undefined') {
@@ -27,6 +33,30 @@
         );
         return;
     }
+    /*extend leaflet - you should include the polli*/
+    L.RotatedMarker = L.Marker.extend({
+        options: {
+            angle: 0
+        },
+        _setPos: function (pos) {
+            L.Marker.prototype._setPos.call(this, pos);
+            if (L.DomUtil.TRANSFORM) {
+                // use the CSS transform rule if available
+                // console.log(this.options.angle);
+                this._icon.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.angle + 'deg)';
+            } else if (L.Browser.ie) {
+                // fallback for IE6, IE7, IE8
+                let rad = this.options.angle * (Math.PI / 180),
+                    cosTheta = Math.cos(rad),
+                    sinTheta = Math.sin(rad);
+                this._icon.style.filter += ' progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\', M11=' +
+                    cosTheta + ', M12=' + (-sinTheta) + ', M21=' + sinTheta + ', M22=' + cosTheta + ')';
+            }
+        }
+    });
+    L.rotatedMarker = function (pos, options) {
+        return new L.RotatedMarker(pos, options);
+    };
     const
         prefixId = '_map-',
         additionBounds = 0.5,
@@ -92,6 +122,7 @@
                 LogislyMap.prototype = LogislyMap;
                 LogislyMap.prototype.constructor = LogislyMap;
                 LogislyMap.leaflet = L;
+                LogislyMap.VERSION = VERSION;
                 LogislyMap.defaultMap = defaultMap;
                 LogislyMap.defaultMode = defaultMode;
                 LogislyMap.defaultBounds = new LogislyMap.leaflet.LatLngBounds(
@@ -102,12 +133,29 @@
                 LogislyMap.getId = function () {
                     return this.lastId || this.createId();
                 };
-                LogislyMap.uuid = function uuid() {
-                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                        let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                        return v.toString(16);
-                    });
-                };
+                LogislyMap.angleFromCoordinates = (sourceLatLng, targetLatLng) => {
+                    let lat1 = sourceLatLng.lat || sourceLatLng[0];
+                    let lon1 = sourceLatLng.lng || sourceLatLng[1];
+                    let lat2 = targetLatLng.lat || targetLatLng[0];
+                    let lon2 = targetLatLng.lng || targetLatLng[1];
+                    let dLon = (lon2 - lon1);
+                    let y = Math.sin(dLon) * Math.cos(lat2);
+                    let x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1)
+                        * Math.cos(lat2) * Math.cos(dLon);
+
+                    let bearings = Math.atan2(y, x);
+
+                    bearings = bearings * (180 / Math.PI);
+                    bearings = (bearings + 360) % 360;
+                    bearings = 360 - bearings; // count degrees counter-clockwise - remove to make clockwise
+                    return bearings;
+                },
+                    LogislyMap.uuid = function uuid() {
+                        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                            let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        });
+                    };
                 LogislyMap.createId = function () {
                     let id = prefixId + this.uuid();
                     let el = document.createElement('div');
@@ -363,7 +411,7 @@
                 }
                 let method = options.method || 'GET';
                 xhr.open(method, uri);
-                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json');
                 if (options && options.headers && typeof options.headers === 'object') {
                     for (let i in options.headers) {
                         if (!options.headers.hasOwnProperty(i) || typeof i !== 'string') {
@@ -380,7 +428,7 @@
                     }
                     resolve(xhr.response);
                 };
-                xhr.send(options.body||null);
+                xhr.send(options.body || null);
             });
             let hasInit = false;
             // Map.layers = layers;
@@ -406,6 +454,8 @@
                     //add zoom control with your options
                     if (options.zoomControl) {
                         this.current.zoomControl.setPosition('topright');
+                    }
+                    if (options.enableScale !== false) {
                         this.control.scale().addTo(this.current);
                     }
                     if (enableMapControl) {
