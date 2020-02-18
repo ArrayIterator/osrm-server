@@ -5,6 +5,10 @@ auth:
 # Result without JSON prettify
 minify: false
 
+# ALLOWED CORS REFERER
+referer:
+  example.com
+
 # OSRM PATH
 # String contains ${root}, ${data}, ${scripts}, ${public}
 # WILL BE REPLACE

@@ -97,6 +97,8 @@ server {
     default_type text/html;
     # ADD PROXY HEADER
     proxy_set_header X-Forwarded-For $remote_addr;
+    # ADD REAL HOST
+    proxy_set_header Host $http_host;
 
     # INDEX (NOT USED)
     # index '#';

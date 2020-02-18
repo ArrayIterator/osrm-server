@@ -4,6 +4,7 @@ module.exports = () => {
     const path = require('path'),
         fs = require('fs'),
         express = require('express'),
+        URL = require('url'),
         bodyParser = require('body-parser'),
         yaml = require('yaml'),
         cors = require('cors'),
@@ -31,7 +32,7 @@ module.exports = () => {
                 app.Serve = require('./Serve');
     app.Serve.Application = app;
     global.Application = app;
-
+    app.enable('trust proxy');
     app.start = function (callback) {
         const {internal, notfound, unauthorized} = express.Serve;
         let config = new Configuration({});
@@ -73,7 +74,7 @@ module.exports = () => {
         try {
             let basePath = path.join(__dirname, '/../routes');
             // add cors
-            app.use(cors())
+            this.use(cors());
             this.use((Request, Response, Next) => {
                 Response = require('./Response')(Request, Response);
                 let headers = Request.headers;
@@ -81,6 +82,7 @@ module.exports = () => {
                 global.Response = Response;
                 global.Request = Request;
                 let min = global.Config.get('minify') === true;
+                let allowedReferer = global.Config.get('referer') || null;
                 let reg = min ? /^\s*(off|0|false|no)\s*$/gi : /^\s*(true|1|yes|on)\s*$/gi;
                 let minify = min;
                 let changed = false;
@@ -98,6 +100,48 @@ module.exports = () => {
                     minify = !minify;
                 }
                 global.Compressed = minify;
+
+                let host    = headers['host'];
+                let referer = headers['referer'] || null;
+                if (referer) {
+                    if (typeof referer === 'string') {
+                        referer = URL.parse(referer.toLowerCase());
+                        referer = referer.host || null;
+                    } else {
+                        referer = null;
+                    }
+                }
+                // check if allow Referer
+                let isAllowedReferer = false;
+                if (referer) {
+                    if (host === referer) {
+                        Response.header('X-Referer-Host', referer);
+                        isAllowedReferer = true;
+                    } else {
+                        for (let i in allowedReferer) {
+                            if (!allowedReferer.hasOwnProperty(i)) {
+                                continue;
+                            }
+                            let Ref = allowedReferer[i];
+                            if (typeof Ref !== 'string') {
+                                continue;
+                            }
+                            if (Ref.match(/^([a-z]+:)\/\//)) {
+                                let u = URL.parse(Ref);
+                                Ref = u.host || null;
+                            }
+                            if (!Ref) {
+                                continue;
+                            }
+                            Ref = Ref.toLowerCase();
+                            if (Ref === referer) {
+                                Response.header('X-Referer-Host', Ref);
+                                isAllowedReferer = true;
+                                break;
+                            }
+                        }
+                    }
+                }
                 if (token === null) {
                     try {
                         Next();
@@ -117,6 +161,9 @@ module.exports = () => {
                 }
                 let headerToken = headers['x-auth-token'] || query['token'];
                 if (!headerToken || !token[headerToken]) {
+                    if (isAllowedReferer) {
+                        return Next();
+                    }
                     return unauthorized(Response);
                 }
 
@@ -134,12 +181,12 @@ module.exports = () => {
                     return;
                 }
                 let body = Request.body || {};
-                if (body.compress) {
+                if (body['compress']) {
                     global.Compressed = !(
-                        body.compress === 1
-                        || body.compress === true
-                        || typeof body.compress === 'string' && !body
-                            .compress
+                        body['compress'] === 1
+                        || body['compress'] === true
+                        || typeof body['compress'] === 'string'
+                        && !body['compress']
                             .replace(/\s*/, '')
                             .match(/^\s*(true|1|yes|on)\s*$/gi)
                     );

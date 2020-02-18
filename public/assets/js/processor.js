@@ -178,7 +178,7 @@
                 disablingMap = [],
                 disablingMode = [],
                 disablingMapMode = {},
-                UcWords = (str) => str.replace(/\b[a-z]/g, function(letter) {
+                UcWords = (str) => str.replace(/\b[a-z]/g, function (letter) {
                     return letter.toUpperCase();
                 }),
                 createLayer = (mod, provider, args) => {
@@ -331,21 +331,21 @@
                 currentMode = options.mode;
             Map.mode = options.mode;
             Map.createLayer = createLayer;
-            Map.fitZoom = function(...args) {
+            Map.fitZoom = function (...args) {
                 args[0] = args[0] || this.current.getBounds();
                 return this.fitBounds(...args);
             };
-            Map.fitBounds = function(...args) {
+            Map.fitBounds = function (...args) {
                 args[0] = args[0] || this.current.getBounds();
                 this.current.fitBounds(...args);
                 return this;
             };
-            Map.fitCenter = function(...args) {
+            Map.fitCenter = function (...args) {
                 args[0] = args[0] || this.current.getCenter();
                 this.current.flyTo(...args);
                 return this;
             };
-            Map.setZom = function(...args) {
+            Map.setZom = function (...args) {
                 this.current.setZoom(...args);
                 return this;
             };
@@ -358,7 +358,11 @@
 
             Map.remoteJSON = (uri, options) => new Promise((resolve, reject) => {
                 let xhr = new XMLHttpRequest();
-                xhr.open('GET', uri);
+                if (!options || typeof options !== "object") {
+                    options = {};
+                }
+                let method = options.method || 'GET';
+                xhr.open(method, uri);
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 if (options && options.headers && typeof options.headers === 'object') {
                     for (let i in options.headers) {
@@ -369,15 +373,15 @@
                     }
                 }
                 xhr.responseType = 'json';
-                xhr.onload = function() {
+                xhr.onload = function () {
                     if (xhr.status !== 200) {
                         reject(xhr);
                         return;
                     }
                     resolve(xhr.response);
                 };
-                xhr.send();
-            }).catch((e) => e);
+                xhr.send(options.body||null);
+            });
             let hasInit = false;
             // Map.layers = layers;
             Map.init = function (fn, err) {
@@ -387,8 +391,9 @@
                 hasInit = true;
                 let result;
                 try {
-                    currentMap = this.map(this.element, options);
-                    this.current = currentMap;
+                    this.current
+                        = currentMap
+                        = this.map(this.element, options);
                     this.current.logislyMap = this;
                     currentMap.on({
                         'layeradd': () => {
@@ -420,11 +425,11 @@
                         this.current = proceedMap(Map.current);
                         if (typeof this.success === 'function') {
                             result = this.current;
-                            this.success.call(this, this.current, this);
+                            this.success.call(this, Map.current, this);
                         }
 
                         if (typeof fn === 'function') {
-                            fn.call(this, null, this.current, this);
+                            fn.call(this, null, Map.current, this);
                         }
                     };
                     if (preparation && preparation instanceof Promise) {
@@ -489,7 +494,7 @@
                         + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(LogMapProviders[k].name) + '</span>'
                         + ' <span class="leaflet-logisly-map-layer-mode">' + UcWords(a) + '</span>'
                         + '</span>';
-                    let ly = createLayer(a, k, {id: (k+':'+a)});
+                    let ly = createLayer(a, k, {id: (k + ':' + a)});
                     if (k === currentProvider && currentMode === a) {
                         selection = ly;
                     }
