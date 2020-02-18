@@ -180,10 +180,10 @@
                 })
             })
             .bindPopup('I\'m Moving');
-        zoomedMarkerGroup.addLayer(lastMarker);
         let hasStarted = false;
         looping = () => {
             if (count === 0) {
+                zoomedMarkerGroup.addLayer(lastMarker);
                 lastMarker.addTo(MarkersGroup);
             }
             if (temporaryStop === true) {
@@ -193,6 +193,7 @@
             if (count + 1 >= last || !polyline.getLatLngs()[count + 1]) {
                 if (lastMarker) {
                     MarkersGroup.removeLayer(lastMarker);
+                    zoomedMarkerGroup.removeLayer(lastMarker);
                     count = 0;
                 }
                 hasStarted = false;
