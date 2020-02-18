@@ -187,9 +187,9 @@
                 lastMarker.addTo(MarkersGroup);
             }
             if (temporaryStop === true) {
+                hasStarted = false;
                 return;
             }
-            temporaryStop = false;
             if (count + 1 >= last || !polyline.getLatLngs()[count + 1]) {
                 if (lastMarker) {
                     MarkersGroup.removeLayer(lastMarker);
@@ -216,6 +216,7 @@
                 .setRotationAngle(lMap.angleFromCoordinates(lastPos, pos));
             map.flyToBounds(zoomedMarkerGroup.getBounds(), {animate: !hasStarted});
             hasStarted = true;
+            temporaryStop = false;
             setTimeout(looping, 1000);
         };
     };
