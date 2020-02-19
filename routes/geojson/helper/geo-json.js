@@ -71,22 +71,38 @@ function GeoJson()
     geo.json = () => geo_countries;
     geo.code = function (code) {
         if (typeof code !== 'string'
-            || code.trim().length < 3
-            || !code.trim().match(/^[a-z]{3}$/gi)
+            || code.trim().length < 2
+            || !code.trim().match(/^[a-z]{2,3}$/gi)
         ) {
             return null;
         }
+
         code = code.trim().toUpperCase();
+        let length = code.length;
+        let selection = length === 3 ? 'alpha3' : 'alpha2';
         let all = geo.all();
         for (let i =0; all.length > i;i++) {
-            if (all[i].id.toUpperCase() === code) {
-                return {
-                    info: getMaxMin(all[i].geometry.coordinates),
-                    result: {
-                        type: "FeatureCollection",
-                        features: all[i]
-                    },
-                };
+            if (!all[i].properties || typeof all[i].properties['countries'] !== "object") {
+                continue;
+            }
+            for (let ik in all[i].properties['countries']) {
+                if (!all[i].properties['countries'].hasOwnProperty(ik)
+                    || ! all[i].properties['countries'][ik]
+                    || typeof all[i].properties['countries'][ik] !== 'object'
+                    || ! all[i].properties['countries'][ik].hasOwnProperty('iso3166')
+                    || ! all[i].properties['countries'][ik]['iso3166'].hasOwnProperty(selection)
+                ) {
+                    continue;
+                }
+                if (all[i].properties['countries'][ik]['iso3166'][selection].toUpperCase() === code) {
+                    return {
+                        info: getMaxMin(all[i].geometry.coordinates),
+                        result: {
+                            type: "FeatureCollection",
+                            features: all[i]
+                        },
+                    };
+                }
             }
         }
 
@@ -99,16 +115,26 @@ function GeoJson()
         name = name.trim().toLowerCase();
         let all = geo.all();
         for (let i =0; all.length > i;i++) {
-            if (typeof all[i].properties.name === 'string'
-                && all[i].properties.name.toString().toLowerCase() === name
-            ) {
-                return {
-                    info : getMaxMin(all[i].geometry.coordinates),
-                    result: {
-                        type: "FeatureCollection",
-                        features: all[i]
-                    }
-                };
+            if (!all[i].properties || typeof all[i].properties['countries'] !== "object") {
+                continue;
+            }
+            for (let ik in all[i].properties['countries']) {
+                if (!all[i].properties['countries'].hasOwnProperty(ik)
+                    || ! all[i].properties['countries'][ik]
+                    || typeof all[i].properties['countries'][ik] !== 'object'
+                    || !all[i].properties['countries'][ik].hasOwnProperty('name')
+                ) {
+                    continue;
+                }
+                if (all[i].properties['countries'][ik]['name'].toString().toLowerCase() === name) {
+                    return {
+                        info: getMaxMin(all[i].geometry.coordinates),
+                        result: {
+                            type: "FeatureCollection",
+                            features: all[i]
+                        }
+                    };
+                }
             }
         }
         return null;
