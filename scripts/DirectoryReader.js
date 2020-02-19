@@ -37,6 +37,7 @@ module.exports = (directory, succeed, complete, ...arg) => {
                     result: succeed(routeName, RouterFile, ...arg)
                 };
             } catch (e) {
+                console.error(e);
                 // pas
             }
         }

@@ -63,6 +63,7 @@ module.exports = (Router) => {
                     }, Router);
                 });
             } catch (e) {
+                console.error(e);
                 // pas
             }
         }
