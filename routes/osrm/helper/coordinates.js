@@ -5,7 +5,7 @@ module.exports = (coordinates) => {
     let minLat = -90;
     let maxLon = 180;
     let minLon = -180;
-    // used based on countries.json
+    // used based on world.geojson
     let maxMin = {
         minLat: -10.359987,
         minLon: 95.293026,

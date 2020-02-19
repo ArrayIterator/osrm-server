@@ -1,4 +1,4 @@
-const geo_countries = require(RootPath+'/countries.json');
+const geo_countries = require(RootPath+'/world.geojson');
 function GeoJson()
 {
     let geo = GeoJson;
