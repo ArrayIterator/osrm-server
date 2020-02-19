@@ -1,4 +1,31 @@
+/*!
+L.RotatedMarker = L.Marker.extend({
+    options: {
+        angle: 0
+    },
+    _setPos: function (pos) {
+        L.Marker.prototype._setPos.call(this, pos);
+        if (L.DomUtil.TRANSFORM) {
+            // use the CSS transform rule if available
+            // console.log(this.options.angle);
+            this._icon.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.angle + 'deg)';
+        } else if (L.Browser.ie) {
+            // fallback for IE6, IE7, IE8
+            let rad = this.options.angle * (Math.PI / 180),
+                cosTheta = Math.cos(rad),
+                sinTheta = Math.sin(rad);
+            this._icon.style.filter += ' progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\', M11=' +
+                cosTheta + ', M12=' + (-sinTheta) + ', M21=' + sinTheta + ', M22=' + cosTheta + ')';
+        }
+    }
+});
+L.rotatedMarker = function (pos, options) {
+    return new L.RotatedMarker(pos, options);
+};
+*/
+
 "use strict";
+
 !(function (_win) {
     const VERSION = '1.0.0';
     let
@@ -33,29 +60,29 @@
         );
         return;
     }
-    /*extend leaflet - you should include the polli*/
-    L.RotatedMarker = L.Marker.extend({
-        options: {
-            angle: 0
-        },
-        _setPos: function (pos) {
-            L.Marker.prototype._setPos.call(this, pos);
-            if (L.DomUtil.TRANSFORM) {
-                // use the CSS transform rule if available
-                // console.log(this.options.angle);
-                this._icon.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.angle + 'deg)';
-            } else if (L.Browser.ie) {
-                // fallback for IE6, IE7, IE8
-                let rad = this.options.angle * (Math.PI / 180),
-                    cosTheta = Math.cos(rad),
-                    sinTheta = Math.sin(rad);
-                this._icon.style.filter += ' progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\', M11=' +
-                    cosTheta + ', M12=' + (-sinTheta) + ', M21=' + sinTheta + ', M22=' + cosTheta + ')';
-            }
+    /*! BEARING */
+    L.LatLng.prototype.bearingTo = function (LatLng) {
+        let d2r = Math.PI / 180;
+        let r2d = 180 / Math.PI;
+        let lat1 = this.lat * d2r;
+        let lat2 = LatLng.lat * d2r;
+        let dLon = (LatLng.lng - this.lng) * d2r;
+        let y = Math.sin(dLon) * Math.cos(lat2);
+        let x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+        return (parseInt(Math.atan2(y, x) * r2d) + 360) % 360;
+    };
+
+    L.windowLoad = (fn) => {
+        if (typeof fn !== "function") {
+            return;
         }
-    });
-    L.rotatedMarker = function (pos, options) {
-        return new L.RotatedMarker(pos, options);
+        _win.addEventListener('load', function (event) {
+            fn.call(L, L, event, this)
+        });
+    };
+
+    L.LogislyMap = (...args) => {
+        return new LogislyMap(...args);
     };
     const
         prefixId = '_map-',
@@ -129,44 +156,29 @@
                     new LogislyMap.leaflet.LatLng(IndonesiaLocation.lat.min - additionBounds, IndonesiaLocation.lon.min - additionBounds),
                     new LogislyMap.leaflet.LatLng(IndonesiaLocation.lat.max + additionBounds, IndonesiaLocation.lon.max + additionBounds)
                 );
-                LogislyMap.lastId = null;
+                LogislyMap._type = defaultMap;
+                LogislyMap._mode = defaultMode;
+                LogislyMap._lastId = null;
                 LogislyMap.getId = function () {
-                    return this.lastId || this.createId();
+                    return this._lastId || this.createId();
                 };
-                LogislyMap.angleFromCoordinates = (sourceLatLng, targetLatLng) => {
-                    let lat1 = sourceLatLng.lat || sourceLatLng[0];
-                    let lon1 = sourceLatLng.lng || sourceLatLng[1];
-                    let lat2 = targetLatLng.lat || targetLatLng[0];
-                    let lon2 = targetLatLng.lng || targetLatLng[1];
-                    let dLon = (lon2 - lon1);
-                    let y = Math.sin(dLon) * Math.cos(lat2);
-                    let x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1)
-                        * Math.cos(lat2) * Math.cos(dLon);
-
-                    let bearings = Math.atan2(y, x);
-
-                    bearings = bearings * (180 / Math.PI);
-                    bearings = (bearings + 360) % 360;
-                    bearings = 360 - bearings; // count degrees counter-clockwise - remove to make clockwise
-                    return bearings;
-                },
-                    LogislyMap.uuid = function uuid() {
-                        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                            let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                            return v.toString(16);
-                        });
-                    };
+                LogislyMap.uuid = function uuid() {
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                };
                 LogislyMap.createId = function () {
                     let id = prefixId + this.uuid();
                     let el = document.createElement('div');
                     el.setAttribute('data-map-id', id);
                     el.setAttribute('class', 'leaflet-logisly-map');
-                    this.lastId = el;
-                    return this.lastId;
+                    this._lastId = el;
+                    return this._lastId;
                 };
                 LogislyMap.init = function (fn) {
-                    if (typeof this.prepare === 'function') {
-                        this.prepare.call(this, this);
+                    if (typeof this._prepare === 'function') {
+                        this._prepare.call(this, this);
                     }
                     if (typeof fn === 'function') {
                         fn.call(this, this);
@@ -176,33 +188,35 @@
                     }
                     return this;
                 };
-                LogislyMap.success = null;
-                LogislyMap.error = null;
-                LogislyMap.always = null;
-                LogislyMap.prepare = null;
+                LogislyMap._success = null;
+                LogislyMap._error = null;
+                LogislyMap._always = null;
+                LogislyMap._prepare = null;
                 LogislyMap.onBeforeProcess = function (fn) {
-                    this.prepare = fn;
+                    this._prepare = fn;
                     return this;
                 };
                 LogislyMap.onSuccess = function (fn) {
-                    this.success = fn;
+                    this._success = fn;
                     return this;
                 };
                 LogislyMap.onError = function (fn) {
-                    this.error = fn;
+                    this._error = fn;
                     return this;
                 };
                 LogislyMap.onAlways = function (fn) {
-                    this.always = fn;
+                    this._always = fn;
                     return this;
                 };
                 LogislyMap.availableMapModes = LogMapProviders;
                 if (this) {
                     this.prototype = LogislyMap;
-                    this.success = LogislyMap.onsuccess;
-                    this.onerror = LogislyMap.onerror;
-                    this.prepare = LogislyMap.prepare;
-                    this.lastId = LogislyMap.lastId;
+                    this._type = LogislyMap._type;
+                    this._mode = LogislyMap._mode;
+                    this._success = LogislyMap._success;
+                    this._error = LogislyMap._error;
+                    this._prepare = LogislyMap._prepare;
+                    this._lastId = LogislyMap._lastId;
                 }
                 for (let i in LogislyMap.leaflet) {
                     if (!LogislyMap.leaflet.hasOwnProperty(i)) {
@@ -330,8 +344,8 @@
             options.closePopupOnClick = options.closePopupOnClick || true;
             options.doubleClickZoom = options.doubleClickZoom || true;
             options.trackResize = options.trackResize || true;
-            options.zoomSnap = typeof options.zoomSnap !== "undefined" ? parseInt(options.zoomSnap) : 1;
-            options.zoomDelta = typeof options.zoomDelta !== "undefined" ? parseInt(options.zoomDelta) : 1;
+            options.zoomSnap = options.zoomSnap || 1;
+            options.zoomDelta = options.zoomDelta || 1;
             // use default
             options.minZoom = options.minZoom || 5;
             options.maxBounds = options.maxBounds || bounds;
@@ -349,11 +363,25 @@
             options.mode = options.mode || defaultMode;
             options.type = options.type || defaultMap;
             options.enableMapControl = options.enableMapControl || false;
+            // MAP
+            Map._type = options.type && typeof options.type === 'string'
+            && options.type.toString().match(/(open|osm|openstreetmap)/gi)
+                ? 'osm'
+                : (typeof options.type === 'string' ? options.type.toString().toLowerCase() : defaultMap);
+            if (typeof LogMapProviders[Map._type] === "undefined") {
+                Map._type = defaultMap;
+            }
+            if (LogMapProviders[Map._type].mode[options.mode] === undefined) {
+                options.mode = defaultMode;
+            }
+            let currentProvider = options.type,
+                currentMode = options.mode;
+            Map._mode = options.mode;
             selector = options.selector || null;
             let enableMapControl = options.enableMapControl,
                 domEvent = Map.DomEvent,
                 element = Map.getId();
-            Map.element = element;
+            Map._element = element;
             domEvent.on(window, 'resize', (ev) => {
                 //if (options.handleResize) {
                 element.style.position = 'relative';
@@ -366,45 +394,34 @@
                 domEvent.stopPropagation(ev);
                 //}
             });
-            Map.type = options.type && typeof options.type === 'string' && options.type.toString().match(/(open|osm|openstreetmap)/gi)
-                ? 'osm'
-                : (typeof options.type === 'string' ? options.type.toString().toLowerCase() : defaultMap);
-            if (typeof LogMapProviders[Map.type] === "undefined") {
-                Map.type = defaultMap;
-            }
-            if (LogMapProviders[Map.type].mode[options.mode] === undefined) {
-                options.mode = defaultMode;
-            }
-            let currentProvider = options.type,
-                currentMode = options.mode;
-            Map.mode = options.mode;
+            Map._current = null;
+            Map._layers = null;
             Map.createLayer = createLayer;
             Map.fitZoom = function (...args) {
-                args[0] = args[0] || this.current.getBounds();
-                return this.fitBounds(...args);
+                args[0] = args[0] || Map._current.getBounds();
+                return Map.fitBounds(...args);
             };
             Map.fitBounds = function (...args) {
-                args[0] = args[0] || this.current.getBounds();
-                this.current.fitBounds(...args);
-                return this;
+                args[0] = args[0] || Map._current.getBounds();
+                Map._current.fitBounds(...args);
+                return Map;
             };
             Map.fitCenter = function (...args) {
-                args[0] = args[0] || this.current.getCenter();
-                this.current.flyTo(...args);
-                return this;
+                args[0] = args[0] || Map._current.getCenter();
+                Map._current.flyTo(...args);
+                return Map;
             };
             Map.setZom = function (...args) {
-                this.current.setZoom(...args);
-                return this;
+                Map._current.setZoom(...args);
+                return Map;
             };
             Map.encode = function (str) {
-                return this.PolylineUtil.encode(str);
+                return Map.PolylineUtil.encode(str);
             };
             Map.decode = function (str) {
-                return this.PolylineUtil.decode(str);
+                return Map.PolylineUtil.decode(str);
             };
-
-            Map.remoteJSON = (uri, options) => new Promise((resolve, reject) => {
+            Map.remoteJSON = (uri, options) => {
                 let xhr = new XMLHttpRequest();
                 if (!options || typeof options !== "object") {
                     options = {};
@@ -420,17 +437,38 @@
                         xhr.setRequestHeader(i, options.headers[i]);
                     }
                 }
-                xhr.responseType = 'json';
+                if (typeof options.progress === "function") {
+                    xhr.onprogress = options.progress;
+                }
+                if (options.error) {
+                    xhr.onerror = options.error;
+                }
+                xhr.responseType = options.type || 'json';
                 xhr.onload = function () {
                     if (xhr.status !== 200) {
-                        reject(xhr);
+                        if (typeof options.error == "function") {
+                            options.error(xhr);
+                        }
                         return;
                     }
-                    resolve(xhr.response);
+                    if (typeof options.success === "function") {
+                        options.success.call(xhr, xhr.response, xhr, Map);
+                    }
                 };
+                if (typeof options.beforeSend === "function") {
+                    options.beforeSend(xhr);
+                } else if (typeof options.beforesend === "function") {
+                    options.beforesend(xhr);
+                }
                 xhr.send(options.body || null);
-            });
+                return xhr;
+            };
+
             let hasInit = false;
+            Map.getMap = function () {
+                return this._current;
+            };
+
             // Map.layers = layers;
             Map.init = function (fn, err) {
                 if (hasInit === true) {
@@ -439,10 +477,29 @@
                 hasInit = true;
                 let result;
                 try {
-                    this.current
+                    this._current
                         = currentMap
-                        = this.map(this.element, options);
-                    this.current.logislyMap = this;
+                        = this.map(this._element, options);
+                    this._current.logislyMap = this;
+                    // add nested Object
+                    for (let i in this) {
+                        if (!this.hasOwnProperty(i)) {
+                            continue;
+                        }
+                        if (this._current.hasOwnProperty(i)) {
+                            continue;
+                        }
+                        this._current[i] = this[i];
+                    }
+                    for (let i in this.prototype) {
+                        if (!this.prototype.hasOwnProperty(i)) {
+                            continue;
+                        }
+                        if (this._current.hasOwnProperty(i)) {
+                            continue;
+                        }
+                        this._current[i] = this.prototype[i];
+                    }
                     currentMap.on({
                         'layeradd': () => {
                             window.dispatchEvent(new Event('resize'));
@@ -453,39 +510,39 @@
                     });
                     //add zoom control with your options
                     if (options.zoomControl) {
-                        this.current.zoomControl.setPosition('topright');
+                        this._current.zoomControl.setPosition('topright');
                     }
                     if (options.enableScale !== false) {
-                        this.control.scale().addTo(this.current);
+                        this.control.scale().addTo(this._current);
                     }
                     if (enableMapControl) {
                         this
                             .control
                             .layers(layers, null, {sortLayers: false, collapsed: true, position: 'topright'})
-                            .addTo(this.current);
+                            .addTo(this._current);
                     }
                     if (selection) {
-                        selection.addTo(this.current);
+                        selection.addTo(this._current);
                     }
                     let preparation;
-                    if (this.prepare && typeof this.prepare === "function") {
-                        preparation = this.prepare.call(this, Map.current, this);
+                    if (typeof this._prepare === "function") {
+                        preparation = this._prepare.call(this, Map._current, this);
                     }
                     let callDirect = () => {
-                        this.current = proceedMap(Map.current);
-                        if (typeof this.success === 'function') {
-                            result = this.current;
-                            this.success.call(this, Map.current, this);
+                        this._current = proceedMap(Map._current);
+                        if (typeof this._success === 'function') {
+                            result = this._current;
+                            this._success.call(this, Map._current, this);
                         }
 
                         if (typeof fn === 'function') {
-                            fn.call(this, null, Map.current, this);
+                            fn.call(this, null, Map._current, this);
                         }
                     };
                     if (preparation && preparation instanceof Promise) {
                         preparation.catch((e) => {
                             throw e;
-                        }).finally((e) => {
+                        }).finally(() => {
                             callDirect();
                             window.dispatchEvent(new Event('resize'));
                         });
@@ -493,22 +550,22 @@
                         callDirect();
                     }
                 } catch (e) {
-                    console.log(e);
-                    if (!Map.current) {
-                        this.current = undefined;
+                    //console.log(e);
+                    if (!Map._current) {
+                        this._current = undefined;
                     }
                     result = e;
                     if (typeof err === 'function') {
                         err.call(this, result);
                     } else if (fn === 'function') {
-                        fn.call(this, e, this.current, this);
+                        fn.call(this, e, this._current, this);
                     }
-                    if (typeof Map.error === 'function') {
-                        this.error.call(this, e, this);
+                    if (typeof Map._error === 'function') {
+                        this._error.call(this, e, this);
                     }
                 }
-                if (typeof this.always === 'function') {
-                    this.always.call(this, result, this);
+                if (typeof this._always === 'function') {
+                    this._always.call(this, result, this);
                 }
                 return Map;
             };
@@ -542,7 +599,7 @@
                     }
                     let name = '<span class="leaflet-logisly-map-layer-selector">'
                         + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(LogMapProviders[k].name) + '</span>'
-                        + ' <span class="leaflet-logisly-map-layer-mode">' + UcWords(a) + '</span>'
+                        + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(a) + '</span>'
                         + '</span>';
                     let ly = createLayer(a, k, {id: (k + ':' + a)});
                     if (k === currentProvider && currentMode === a) {
@@ -560,7 +617,7 @@
                     layers[name] = ly;
                 }
             }
-            Map.layers = layers;
+            Map._layers = layers;
             return Map;
         };
 

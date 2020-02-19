@@ -1,130 +1,112 @@
 (function (_) {
     // custom zoom bar control that includes a Zoom Home function
-    let config = {
-        selector: 'map',
-        type: 'google', // default provider
-        mode: 'standard', // default provider
-        // disable ESRI Map
-        disableMapEsri: true,
-        enableScale: false,
-        // disable Google Terrain
-        disableGoogleModeTerrain: true,
-        // disable all mode satellite
-        disableModeSatellite: true,
-        // enable map control
-        enableMapControl: true,
-        preferCanvas: true,
-        fitSelectedRoutes: false
-    };
     let host = location.protocol + '//' + location.host,
         url = host + '/osrm/route/?coordinates=112.7227133,-7.9963867|113.6548642,-7.9963867&geometry=poly&overview=full&compress=1',
-        map,
         icon = host + '/assets/images/truck.png',
         // determine to markers group layer to remove later
-        MarkersGroup,
         startStopControl,
         looping,
+        PolylineDecode,
         temporaryStop = true,
-        lMap = new LogislyMap(config);
     /*!
      * ------------------------------------------------------
      * Map Control Button To Add Play Pause
      * ------------------------------------------------------
      */
-    lMap.Control.startStop = lMap.Control.extend({
-        options: {
-            position: 'topleft',
-            startTitle: '<span class="mif-play" title="Start Direction"></span>',
-            startWithoutZoomTitle: '<span class="mif-play" title="Start Direction Without Zoom"></span>',
-            stopWithoutZoomTitle: '<span class="mif-pause" title="Pause Direction Without Zoom"></span>',
-            stopTitle: '<span class="mif-pause" title="Pause Direction"></span>',
-            resetZoomTitle: '<span class="mif-spinner5" title="Reset Zoom"></span>',
-        },
-        onAdd: function (map) {
-            map.startStop = this;
-            let controlName = 'gin-control-zoom',
-                container = L.DomUtil.create('div', controlName + ' leaflet-bar'),
-                options = this.options;
-            this._resetZoomButton = this
-                ._createButton(
-                    options.resetZoomTitle,
-                    controlName + '-play', container,
-                    this.resetZoomFn
-                );
-            this._startTitleButton = this
-                ._createButton(
-                    options.startTitle,
-                    controlName + '-play', container,
-                    this.playStop
-                );
-            return container;
-        },
-        playStop: function () {
-            if (typeof looping !== "function") {
-                return;
-            }
-            let options = this.options;
-            if (temporaryStop === true) {
-                this._startTitleButton.innerHTML = options.stopTitle;
-                temporaryStop = false;
-                looping();
-                return;
-            }
+    processor = function(res, map, MarkersGroup) {
+        let _m = this;
+        this.Control.startStop = this.Control.extend({
+            options: {
+                position: 'topleft',
+                startTitle: '<span class="mif-play" title="Start Direction"></span>',
+                startWithoutZoomTitle: '<span class="mif-play" title="Start Direction Without Zoom"></span>',
+                stopWithoutZoomTitle: '<span class="mif-pause" title="Pause Direction Without Zoom"></span>',
+                stopTitle: '<span class="mif-pause" title="Pause Direction"></span>',
+                resetZoomTitle: '<span class="mif-spinner5" title="Reset Zoom"></span>',
+            },
+            map,
+            onAdd: function (map) {
+                this.map = map;
+                map.startStop = this;
+                let controlName = 'gin-control-zoom',
+                    container = L.DomUtil.create('div', controlName + ' leaflet-bar'),
+                    options = this.options;
+                this._resetZoomButton = this
+                    ._createButton(
+                        options.resetZoomTitle,
+                        controlName + '-play', container,
+                        this.resetZoomFn
+                    );
+                this._startTitleButton = this
+                    ._createButton(
+                        options.startTitle,
+                        controlName + '-play', container,
+                        this.playStop
+                    );
+                return container;
+            },
+            playStop: function () {
+                if (typeof looping !== "function") {
+                    return;
+                }
+                let options = this.options;
+                if (temporaryStop === true) {
+                    this._startTitleButton.innerHTML = options.stopTitle;
+                    temporaryStop = false;
+                    looping();
+                    return;
+                }
 
-            this._startTitleButton.innerHTML = options.startTitle;
-            temporaryStop = true;
-        },
-        resetZoomFn: function () {
-            if (temporaryStop === true) {
-                map.flyToBounds(MarkersGroup, {animate: true});
-            }
-        },
-        onRemove: function (map) {
-        },
-        _createButton: function (html, className, container, fn) {
-            let link = L.DomUtil.create('a', className, container);
-            link.innerHTML = html;
-            link.href = '#';
-            L.DomEvent
-                .on(link, 'click', L.DomEvent.stopPropagation)
-                .on(link, 'click', L.DomEvent.stop)
-                .on(link, 'click', () => {
-                    fn.call(this, link);
-                });
+                this._startTitleButton.innerHTML = options.startTitle;
+                temporaryStop = true;
+            },
+            resetZoomFn: function () {
+                if (temporaryStop === true) {
+                    this.map.flyToBounds(MarkersGroup, {animate: true});
+                }
+            },
+            onRemove: function (map) {
+            },
+            _createButton: function (html, className, container, fn) {
+                let link = L.DomUtil.create('a', className, container);
+                link.innerHTML = html;
+                link.href = '#';
+                L.DomEvent
+                    .on(link, 'click', L.DomEvent.stopPropagation)
+                    .on(link, 'click', L.DomEvent.stop)
+                    .on(link, 'click', () => {
+                        fn.call(this, link);
+                    });
 
-            return link;
-        }
-    });
-    let processor = (res) => {
+                return link;
+            }
+        });
+        startStopControl = new this.Control.startStop().addTo(this);
         // if in invalid clause
-        if (!map
-            || !lMap
-            || !res.data.result.routes[0]
-        ) {
+        if (!res.data.result.routes[0]) {
             return;
         }
-        let zoomedMarkerGroup = lMap.featureGroup();
+        let zoomedMarkerGroup = this.featureGroup();
         /*!
          * ------------------------------------------------------
          * add Markers Group To Layer
          * ------------------------------------------------------
          */
-        map.addLayer(MarkersGroup);
-        map.addLayer(zoomedMarkerGroup);
+        this.addLayer(MarkersGroup);
+        this.addLayer(zoomedMarkerGroup);
 
         /*!
          * ------------------------------------------------------
          * Decode Polyline
          * ------------------------------------------------------
          */
-        let PolyLineDecoded = lMap.decode(res.data.result.routes[0].geometry);
-        res = null;
-        if (typeof PolyLineDecoded !== 'object') {
+        PolyLineDecoded = this.decode(res.data.result.routes[0].geometry);
+        if (!PolyLineDecoded || typeof PolyLineDecoded !== 'object') {
             return;
         }
         // for implement icon see: https://github.com/Leaflet/Leaflet.Icon.Glyph
         // and for icon see : https://metroui.org.ua/v3/font.html
-        let polyline = lMap.polyline(PolyLineDecoded).addTo(map);
+        let polyline = this.polyline(PolyLineDecoded).addTo(this);
         let last = polyline.getLatLngs().length - 1;
         /*!
          * ------------------------------------------------------
@@ -132,7 +114,7 @@
          * ------------------------------------------------------
          */
         let pos = polyline.getLatLngs()[last];
-        lMap
+        this
             .marker(pos, {
                 icon: L.icon.glyph({
                     prefix: 'mif',
@@ -148,7 +130,7 @@
          * add first marker
          * ------------------------------------------------------
          */
-        lMap
+        this
             .marker(pos, {
                 icon: L.icon.glyph({
                     prefix: 'mif',
@@ -163,28 +145,37 @@
          * fit bound first fly it
          * ------------------------------------------------------------
          */
-        map.flyToBounds(MarkersGroup, {animate: true});
+        this.flyToBounds(MarkersGroup, {animate: true});
         /*!
          * ------------------------------------------------------
          * Add Points each on
          * ------------------------------------------------------------
          */
         let count = 0;
-        let lastMarker = lMap
+        let div = document.createElement('div');
+        div.innerHTML = '<h3>I\'m Moving</h3><p> Latitude :<br> <span data-lat="'+pos.lat+'">'
+            +pos.lat+'</span><br>'
+            + 'Longitude:<br> <span data-lng="'+pos.lng+'">'+pos.lat+'</span>'
+            +'</p>';
+        let dataLat  = div.querySelector('[data-lat]');
+        let dataLng  = div.querySelector('[data-lng]');
+        let lastAngle = pos.bearingTo(polyline.getLatLngs()[1]);
+        let lastMarker = this
             .marker(pos, {
                 icon: L.icon.glyph({
                     prefix: 'mdi',
                     iconUrl: icon,
                     iconSize: [32, 32],
-                    rotationAngle: lMap.angleFromCoordinates(pos, pos),
+                    rotationAngle: lastAngle,
                 })
             })
-            .bindPopup('I\'m Moving');
+            .setRotationAngle(lastAngle)
+            .bindPopup(div);
         let hasStarted = false;
         looping = () => {
             if (count === 0) {
                 zoomedMarkerGroup.addLayer(lastMarker);
-                lastMarker.addTo(MarkersGroup);
+                lastMarker.addTo(MarkersGroup).openPopup();
             }
             if (temporaryStop === true) {
                 hasStarted = false;
@@ -198,45 +189,55 @@
                 }
                 hasStarted = false;
                 temporaryStop = true;
-                if (map.startStop) {
+                if (this.startStop) {
                     temporaryStop = false;
-                    map.startStop.playStop();
+                    this.startStop.playStop();
                 }
                 console.log('DONE .....!');
                 return;
             }
             count++;
-            if ((count % 2) !== 0) {
-                looping();
-                return;
-            }
+            // if ((count % 2) !== 0) {
+            //     looping();
+            //     return;
+            // }
             let lastPos = pos;
             pos = polyline.getLatLngs()[count];
+            lastAngle = lastPos.bearingTo(pos);
             lastMarker
                 .setLatLng(pos)
-                .setRotationAngle(lMap.angleFromCoordinates(lastPos, pos));
-            map.flyToBounds(zoomedMarkerGroup.getBounds(), {animate: !hasStarted});
+                .setRotationAngle(lastAngle);
+            this.flyToBounds(zoomedMarkerGroup.getBounds(), {animate: true});
+            if (dataLat) {
+                dataLat.setAttribute('data-lat', pos.lat);
+                dataLat.innerHTML = pos.lat;
+            }
+            if (dataLng) {
+                dataLng.setAttribute('data-lat', pos.lng);
+                dataLng.innerHTML = pos.lng;
+            }
             hasStarted = true;
             temporaryStop = false;
-            setTimeout(looping, 1000);
+            setTimeout(looping, 500);
         };
     };
-    let Log = new LogislyMap(config)
-        //! SUCCEED
-        .onSuccess((m, LM) => {
-            // override variable
-            lMap = LM;
-            map = m;
-            MarkersGroup = LM.featureGroup();
-            // add Map Control
-            startStopControl = new lMap.Control.startStop().addTo(map);
-            // call remote
-            return lMap.remoteJSON(url).then(processor).catch((e) => {
+    L.windowLoad(function () {
+        this.LogislyMap(config)
+            //! SUCCEED
+            .onSuccess(function() {
+                // call remote
+                this.remoteJSON(url, {
+                    success: (res, xhr, Map) => {
+                        return processor.call(this.getMap(), res, Map, Map.featureGroup(), this.getMap());
+                    },
+                    error: (xhr) => {
+                        // console.log(xhr);
+                    }
+                });
+            })
+            //! ERROR
+            .onError((e) => {
                 console.log(e);
-            });
-        })
-        //! ERROR
-        .onError((e) => {
-            console.log(e);
-        }).init();
+            }).init();
+    });
 })(window);

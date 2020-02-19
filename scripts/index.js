@@ -74,7 +74,6 @@ module.exports = () => {
         try {
             let basePath = path.join(__dirname, '/../routes');
             // add cors
-            this.use(cors());
             this.use((Request, Response, Next) => {
                 Response = require('./Response')(Request, Response);
                 let headers = Request.headers;
@@ -111,13 +110,15 @@ module.exports = () => {
                         referer = null;
                     }
                 }
+
                 // check if allow Referer
                 let isAllowedReferer = false;
                 if (referer) {
                     if (host === referer) {
                         Response.header('X-Referer-Host', referer);
                         isAllowedReferer = true;
-                    } else {
+                    }
+                    if (!isAllowedReferer) {
                         for (let i in allowedReferer) {
                             if (!allowedReferer.hasOwnProperty(i)) {
                                 continue;
@@ -142,6 +143,11 @@ module.exports = () => {
                         }
                     }
                 }
+
+                if (isAllowedReferer) {
+                    this.use(cors());
+                }
+
                 if (token === null) {
                     try {
                         Next();
