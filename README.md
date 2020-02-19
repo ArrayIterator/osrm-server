@@ -36,10 +36,13 @@ Follow OSRM data storage [README.md](storage/data/osrm/README.md)
 
 ### REF URI
 
-- GEOIP : https://db-ip.com/db/lite.php
-- OSRM : https://github.com/Project-OSRM/
-- OSM : https://openstreetmap.org
-- GEO JSON : https://github.com/johan/world.geo.json [countries.json](countries.json)
+- GEOIP : [https://db-ip.com/db/lite.php](https://db-ip.com/db/lite.php)
+- OSRM : [https://github.com/Project-OSRM/](https://github.com/Project-OSRM/)
+- OSM : [https://openstreetmap.org](https://openstreetmap.org)
+- GEO JSON - see [countries.json](countries.json)
+    - [https://github.com/johan/world.geo.json](https://github.com/johan/world.geo.json)
+    - [https://github.com/datasets/geo-countries](https://github.com/datasets/geo-countries)
+    - [https://gist.github.com/ArrayIterator/015b3bbb40828513d402e397105110e3](https://gist.github.com/ArrayIterator/015b3bbb40828513d402e397105110e3)
 
 ### PORT LISTEN
 
