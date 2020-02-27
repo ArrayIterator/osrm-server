@@ -4,7 +4,7 @@ This is place of osrm data
 
 ### DATA SOURCE
 
-see [http://download.geofabrik.de/](http://download.geofabrik.de/) to download `phbf` file
+see [http://download.geofabrik.de/](http://download.geofabrik.de/) to download `pbf` file
 
 > NOTE
 
@@ -21,7 +21,7 @@ Please check directory `node_modules/osrm/lib/binding/`, it must be contains :
 - `osrm-partition`  : osrm binary partition maker
 - `osrm-routed`     : osrm binary routing maker
 
-On below, process could use osrm binary, eg : `/path/to/node_modules/osrm/lib/binding/osrm-extract data.phbf` 
+On below, process could use osrm binary, eg : `/path/to/node_modules/osrm/lib/binding/osrm-extract data.pbf` 
 
 FOLLOW THIS INSTRUCTION !! [https://github.com/Project-OSRM/osrm-backend/wiki/Running-OSRM](https://github.com/Project-OSRM/osrm-backend/wiki/Running-OSRM)
 
@@ -31,7 +31,7 @@ And Please check [config.example.yaml](config.example.yaml), read it carefully
 
 > Extract data
 ```bash
-osrm-extract data.phbf
+osrm-extract data.phf
 ```
 
 > Partitioning data
