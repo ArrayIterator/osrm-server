@@ -69,7 +69,7 @@ L.rotatedMarker = function (pos, options) {
         let dLon = (LatLng.lng - this.lng) * d2r;
         let y = Math.sin(dLon) * Math.cos(lat2);
         let x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-        return (parseInt(Math.atan2(y, x) * r2d) + 360) % 360;
+        return (parseInt((Math.atan2(y, x) * r2d)) + 360) % 360;
     };
 
     L.windowLoad = (fn) => {
@@ -402,16 +402,29 @@ L.rotatedMarker = function (pos, options) {
                 return Map.fitBounds(...args);
             };
             Map.fitBounds = function (...args) {
+                if (args[0]
+                    && typeof args[0] === 'object'
+                    && typeof args[0]['_map'] === 'object'
+                    && typeof args[0]['getBounds'] === 'function'
+                ) {
+                    args[0] = args[0].getBounds();
+                }
                 args[0] = args[0] || Map._current.getBounds();
                 Map._current.fitBounds(...args);
                 return Map;
             };
             Map.fitCenter = function (...args) {
+                if (args[0]
+                    && typeof args[0] === 'object'
+                    && typeof args[0]['getCenter'] === 'function'
+                ) {
+                    args[0] = args[0].getCenter();
+                }
                 args[0] = args[0] || Map._current.getCenter();
                 Map._current.flyTo(...args);
                 return Map;
             };
-            Map.setZoom = function (...args) {
+            Map.zoom = function (...args) {
                 Map._current.setZoom(...args);
                 return Map;
             };
@@ -471,34 +484,39 @@ L.rotatedMarker = function (pos, options) {
 
             // Map.layers = layers;
             Map.init = function (fn, err) {
+                let _this = this instanceof LogislyObjectMap ? this : Map;
                 if (hasInit === true) {
-                    return this;
+                    return _this;
                 }
+                _this._current = null;
                 hasInit = true;
                 let result;
                 try {
-                    this._current
-                        = currentMap
-                        = this.map(this._element, options);
-                    this._current.logislyMap = this;
+                    currentMap = _this.map(Map._element, options);
+                    _this._current = currentMap;
+                    _this._current.logislyMap = _this;
+                    // console.log(currentMap.fitBounds);
+                    // console.log(this.fitBounds);
                     // add nested Object
-                    for (let i in this) {
-                        if (!this.hasOwnProperty(i)) {
+                    for (let i in _this) {
+                        if (!_this.hasOwnProperty(i)) {
                             continue;
                         }
-                        if (this._current.hasOwnProperty(i)) {
+                        if (_this._current.hasOwnProperty(i) || _this._current[i]) {
                             continue;
                         }
-                        this._current[i] = this[i];
+                        _this._current[i] = _this[i];
                     }
-                    for (let i in this.prototype) {
-                        if (!this.prototype.hasOwnProperty(i)) {
+
+                    for (let i in _this.prototype) {
+                        if (!_this.prototype.hasOwnProperty(i)) {
                             continue;
                         }
-                        if (this._current.hasOwnProperty(i)) {
+                        if (_this._current.hasOwnProperty(i) || _this._current[i]) {
                             continue;
                         }
-                        this._current[i] = this.prototype[i];
+
+                        _this._current[i] = _this.prototype[i];
                     }
                     currentMap.on({
                         'layeradd': () => {
@@ -510,33 +528,32 @@ L.rotatedMarker = function (pos, options) {
                     });
                     //add zoom control with your options
                     if (options.zoomControl) {
-                        this._current.zoomControl.setPosition('topright');
+                        _this._current.zoomControl.setPosition('topright');
                     }
                     if (options.enableScale !== false) {
-                        this.control.scale().addTo(this._current);
+                        _this.control.scale().addTo(_this._current);
                     }
                     if (enableMapControl) {
-                        this
+                        _this
                             .control
                             .layers(layers, null, {sortLayers: false, collapsed: true, position: 'topright'})
-                            .addTo(this._current);
+                            .addTo(_this._current);
                     }
                     if (selection) {
-                        selection.addTo(this._current);
+                        selection.addTo(_this._current);
                     }
                     let preparation;
-                    if (typeof this._prepare === "function") {
-                        preparation = this._prepare.call(this, Map._current, this);
+                    if (typeof _this._prepare === "function") {
+                        preparation = _this._prepare.call(_this, _this._current, _this);
                     }
                     let callDirect = () => {
-                        this._current = proceedMap(Map._current);
-                        if (typeof this._success === 'function') {
-                            result = this._current;
-                            this._success.call(this, Map._current, this);
+                        _this._current = proceedMap(Map._current);
+                        if (typeof _this._success === 'function') {
+                            result = _this._current;
+                            _this._success.call(_this, result, _this);
                         }
-
                         if (typeof fn === 'function') {
-                            fn.call(this, null, Map._current, this);
+                            fn.call(_this, null, _this._current, _this);
                         }
                     };
                     if (preparation && preparation instanceof Promise) {
@@ -550,24 +567,24 @@ L.rotatedMarker = function (pos, options) {
                         callDirect();
                     }
                 } catch (e) {
-                    //console.log(e);
-                    if (!Map._current) {
-                        this._current = undefined;
+                    if (!_this._current) {
+                        _this._current = undefined;
                     }
                     result = e;
                     if (typeof err === 'function') {
-                        err.call(this, result);
+                        err.call(_this, result);
                     } else if (fn === 'function') {
-                        fn.call(this, e, this._current, this);
+                        fn.call(_this, e, _this._current, _this);
                     }
-                    if (typeof Map._error === 'function') {
-                        this._error.call(this, e, this);
+                    // console.log(Map);
+                    if (typeof _this._error === 'function') {
+                        _this._error.call(_this, e, _this);
                     }
                 }
-                if (typeof this._always === 'function') {
-                    this._always.call(this, result, this);
+                if (typeof _this._always === 'function') {
+                    _this._always.call(_this, result, _this);
                 }
-                return Map;
+                return _this;
             };
             for (let i in options) {
                 if (!options.hasOwnProperty(i)) {
