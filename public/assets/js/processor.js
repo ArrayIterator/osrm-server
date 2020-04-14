@@ -411,7 +411,7 @@ L.rotatedMarker = function (pos, options) {
                 Map._current.flyTo(...args);
                 return Map;
             };
-            Map.setZom = function (...args) {
+            Map.setZoom = function (...args) {
                 Map._current.setZoom(...args);
                 return Map;
             };
