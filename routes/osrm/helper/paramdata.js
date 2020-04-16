@@ -269,7 +269,7 @@ module.exports = (query) => {
     if (typeof query.overview === 'string') {
         // query params
         queries.overview = queries.overview.trim() === '' || query.overview.match(/^\s*(false|0|no|off)\s*$/gi)
-            ? false
+            ? 'false'
             : (query.overview.match(/^\s*(on|true|1|yes|full|all)\s*$/gi)
                     ? 'full'
                     : queries.overview
