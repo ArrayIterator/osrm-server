@@ -73,11 +73,10 @@ module.exports = () => {
         global.tokens = token;
         try {
             let basePath = path.join(__dirname, '/../routes');
+            this.use(cors());
             // add cors
             this.use((Request, Response, Next) => {
                 // cors
-                this.use(cors());
-
                 Response = require('./Response')(Request, Response);
                 let headers = Request.headers;
                 let query = Request.query;
