@@ -75,6 +75,9 @@ module.exports = () => {
             let basePath = path.join(__dirname, '/../routes');
             // add cors
             this.use((Request, Response, Next) => {
+                // cors
+                this.use(cors());
+
                 Response = require('./Response')(Request, Response);
                 let headers = Request.headers;
                 let query = Request.query;
@@ -144,10 +147,6 @@ module.exports = () => {
                             }
                         }
                     }
-                }
-
-                if (isAllowedReferer) {
-                    this.use(cors());
                 }
 
                 if (token === null) {
