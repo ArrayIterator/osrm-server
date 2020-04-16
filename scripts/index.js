@@ -82,6 +82,9 @@ module.exports = () => {
                 global.Request = Request;
                 let min = global.Config.get('minify') === true;
                 let allowedReferer = global.Config.get('referer') || null;
+                if (typeof allowedReferer === 'string') {
+                    allowedReferer = allowedReferer.replace(/\s+/g, ' ').trim().split(' ');
+                }
                 let reg = min ? /^\s*(off|0|false|no)\s*$/gi : /^\s*(true|1|yes|on)\s*$/gi;
                 let minify = min;
                 let changed = false;
@@ -99,7 +102,6 @@ module.exports = () => {
                     minify = !minify;
                 }
                 global.Compressed = minify;
-
                 let host    = headers['host'];
                 let referer = headers['referer'] || null;
                 if (referer) {
