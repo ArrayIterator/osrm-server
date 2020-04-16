@@ -64,7 +64,7 @@ alternatives
 overview
     - Aliases   : overview
     - Type      : (string|bool)
-    - Note      : string about overview, true will be returning full, false or empty as simplified
+    - Note      : string about overview, true will be returning full, false or empty to disable, otherwise  simplified
     - Values    : (simplified|full|true)
     - Default   : false|simplified
     - Required  : false

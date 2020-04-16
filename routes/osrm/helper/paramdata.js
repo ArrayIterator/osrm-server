@@ -271,8 +271,12 @@ module.exports = (query) => {
         queries.overview = queries.overview.trim() === '' || query.overview.match(/^\s*(false|0|no|off)\s*$/gi)
             ? 'false'
             : (query.overview.match(/^\s*(on|true|1|yes|full|all)\s*$/gi)
-                    ? 'full'
+                ? 'full'
+                : (
+                    query.overview.match(/^\s*(simpl)/gi)
+                    ? 'simplified'
                     : queries.overview
+                )
             );
     }
     let getDestinations = (destinations) => {
