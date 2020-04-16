@@ -4,7 +4,7 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 NODEMON=$(which nodemon)
 LISTENER='listener.js'
 # MEMORY TO 128 x 10 = 1280
-MAX_MEM_MB=128
+MAX_MEM_MB=64
 DELAY=5
 
 # echo $NODEMON;
