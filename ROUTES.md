@@ -61,6 +61,20 @@ alternatives
         1. ?alternatives=true&coordinates=xxxx,xxx|xxx,xxx
         2. ?alternatives=10&coordinates=xxxx,xxx|xxx,xxx
 
+overview
+    - Aliases   : overview
+    - Type      : (string|bool)
+    - Note      : string about overview, true will be returning full, false or empty as simplified
+    - Values    : (simplified|full|true)
+    - Default   : false|simplified
+    - Required  : false
+    - Example   :
+        1. ?overview=true&coordinates=xxxx,xxx|xxx,xxx
+        2. ?overview=full&coordinates=xxxx,xxx|xxx,xxx
+        3. ?overview=false&coordinates=xxxx,xxx|xxx,xxx
+        4. ?overview=simplified&coordinates=xxxx,xxx|xxx,xxx
+        5. ?overview=&coordinates=xxxx,xxx|xxx,xxx
+
 geometries
     - Aliases   : geometry
     - Type      : (string)
