@@ -4,12 +4,11 @@ const fs = require('fs');
 module.exports = (options) => {
     let configOsrm = Config.get('osrm') || null;
         configOsrm = !configOsrm || typeof configOsrm !== 'object' ? {} : configOsrm;
-
     options = !options || typeof options !== 'object'
         ? configOsrm
         : options;
     if (typeof options.algorithm !== 'string'
-        || ['MLD', 'CH', 'CoreCH'].indexOf(options.algorithm)
+        || ['MLD', 'CH', 'CoreCH'].indexOf(options.algorithm) < 0
     ) {
         options.algorithm = 'MLD';
     }
@@ -17,7 +16,7 @@ module.exports = (options) => {
         options.mmap_memory = true;
     }
     if (typeof options.shared_memory !== "undefined" && typeof options.shared_memory !== 'boolean') {
-        options.shared_memory = true;
+        options.shared_memory = false;
     }
 
     if (typeof options.dataset_name !== "undefined" && typeof options.dataset_name !== 'string') {
@@ -35,5 +34,23 @@ module.exports = (options) => {
     }
 
     options.path = osrmPath;
-    return new OSRM(options);
+    if (options.shared_memory === true) {
+        try {
+            return new OSRM(options);
+        } catch (e) {
+            console.log('ERROR OSRM CHANGED :' + e.message);
+            if (e.message.toString().match(/shared\s+memory/gi)) {
+                options.shared_memory = false;
+            }
+            if (e.message.toString().match(/algorithm/gi)) {
+                options.algorithm = 'MLD';
+            }
+            if (e.message.toString().match(/data[\s_]*set/gi) && options.dataset_name) {
+                delete options.dataset_name;
+            }
+            return new OSRM(options);
+        }
+    } else {
+        return new OSRM(options);
+    }
 };
