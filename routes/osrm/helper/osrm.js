@@ -13,6 +13,9 @@ module.exports = (options) => {
     if (typeof options.mmap_memory !== 'boolean') {
         options.mmap_memory = true;
     }
+    if (typeof options.shared_memory !== "undefined" && typeof options.shared_memory !== 'boolean') {
+        options.shared_memory = true;
+    }
 
     let osrmPath = Config.get('osrm') || null;
     osrmPath = osrmPath ? osrmPath.path : null;
