@@ -15,6 +15,9 @@ referer:
 osrm:
   # OSRM File to read ( we only currently support indonesia)
   path: ${data}/osrm/indonesia-latest.osrm
+  algorithm: "MLD"
+  mmap_memory: true
+  shared_memory: true
 geoip:
   # GEO IP FILE
   country: ${data}/geoip/GeoIP-Country.mmdb

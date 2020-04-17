@@ -7,11 +7,7 @@ module.exports = async (query, timeoutProcessSecond) => {
     } else if (timeoutProcessSecond > 60) {
         timeoutProcessSecond = 60;
     }
-    let options = Config.get('osrm') || {};
-    if (typeof options !== 'object') {
-        options = {};
-    }
-    const osrm = require('../../helper/osrm.js')(options);
+    const osrm = require('../../helper/osrm.js')();
     if (typeof osrm === 'object' && typeof osrm.code === 'number') {
         return osrm;
     }
