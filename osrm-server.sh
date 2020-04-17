@@ -20,4 +20,4 @@ cd $SCRIPTPATH;
 #
 # set max mem to 256
 #
-${NODEMON} ${LISTENER} --max-old-space-size=${MAX_MEM_MB} --watch scripts --watch routes --watch Config.yaml --watch ${LISTENER} --delay ${DELAY}
+${NODEMON} ${LISTENER} --max-old-space-size=${MAX_MEM_MB} --watch scripts --watch routes --watch config.yaml --watch ${LISTENER} --delay ${DELAY}
