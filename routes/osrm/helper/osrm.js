@@ -24,9 +24,8 @@ module.exports = (options) => {
         delete options.dataset_name;
     }
 
-    let osrmPath = configOsrm || null;
-    osrmPath = osrmPath ? osrmPath.path : null;
-    osrmPath = osrmPath || path.join(StoragePath + '/osrm/indonesia-latest.osrm');
+    let osrmPath = options.path ? options.path : (configOsrm.path || null);
+        osrmPath = osrmPath || path.join(StoragePath + '/osrm/indonesia-latest.osrm');
 
     if (!fs.existsSync(osrmPath)) {
         return {
