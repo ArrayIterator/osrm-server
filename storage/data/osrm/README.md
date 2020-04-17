@@ -31,7 +31,7 @@ And Please check [config.example.yaml](config.example.yaml), read it carefully
 
 > Extract data
 ```bash
-osrm-extract data.phf
+osrm-extract data.pbf -p /path/to/node_modules/osrm/profiles/car.lua
 ```
 
 > Partitioning data
