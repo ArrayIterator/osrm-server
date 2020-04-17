@@ -1,0 +1,16 @@
+[Unit]
+Description=Map Service
+[Service]
+User=ubuntu
+# The configuration file application.properties should be here:
+#change this to your workspace
+WorkingDirectory=/change/to/script/path
+#path to executable.
+#executable is a bash script which calls jar file
+ExecStart=/change/to/script/path/osrm-server.sh
+SuccessExitStatus=143
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=5
+[Install]
+WantedBy=multi-user.target
