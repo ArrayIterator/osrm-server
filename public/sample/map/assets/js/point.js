@@ -1,19 +1,21 @@
 (function (_) {
     // MAP CONFIG
     let config = {
+        // maxBounds: null, // max bounds null to access all areas, undefined to indonesia
+        minZoom: 5,
         // id selector
         selector: 'map',
         // default provider -> see processor@LogMapProviders
         type: 'google',
         // default provider
-        mode: 'hybrid',
+        mode: 'standard',
         // disable ESRI Map
         disableMapEsri: true,
         // enable scaling display (on corner scaling size)
         enableScale: true,
         // disable Google Terrain
         disableGoogleModeTerrain: true,
-        disableGoogleModeStandard: true,
+        // disableGoogleModeStandard: true,
         // disable all _mode satellite
         disableModeSatellite: true,
         // enable map control (map chooser -> google, osm etc)
@@ -22,24 +24,26 @@
         preferCanvas: true,
         // fit selected routes
         fitSelectedRoutes: false,
+        useCache: false,
         forceTile: {
-            name: 'Google Standard',
-            prefix: 'Custom',
+            name: 'Standard',
+            prefix: 'Google',
             uri: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
             subdomains: ['', 1, 2, 3],
         },
         tileLayerCallback: function (url, args) {
-            // args.filter = [
-            //     'blur:0px',
-            //     'brightness:95%',
-            //     'contrast:130%',
-            //     'grayscale:20%',
-            //     'hue:290deg',
-            //     'opacity:100%',
+            args.filter = [
+                'blur:0px',
+                'brightness:100%',
+                'contrast:110%',
+                'grayscale:10%',
+                //'hue:-20deg', // 20 more darken
+                'hue:-15deg',
+                'opacity:100%',
             //     'invert:100%',
-            //     'saturate:300%',
-            //     'sepia:10%',
-            // ];
+                'saturate:120%',
+                //'sepia:5%',
+            ];
             return this.tileLayer.colorFilter(url, args);
         }
     };

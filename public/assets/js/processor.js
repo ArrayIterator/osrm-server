@@ -220,7 +220,9 @@
                 createTileLayer = (url, args) => {
                     args.detectRetina = args.detectRetina || true;
                     if (args.subdomains === null || typeof args.subdomains !== 'object') {
-                        delete args.subdomains;
+                        if (typeof args.subdomains !== 'string') {
+                            delete args.subdomains;
+                        }
                     }
                     if (options.tileLayerCallback) {
                         try {
@@ -360,6 +362,7 @@
             options.preferCanvas = options.preferCanvas || true;
             // control
             options.zoomControl = options.zoomControl || true;
+            options.useCache = !!options.useCache;
             options.attributionControl = options.attributionControl || false;
             // Interaction
             options.dragging = options.dragging || true;
@@ -368,9 +371,18 @@
             options.trackResize = options.trackResize || true;
             options.zoomSnap = options.zoomSnap || 1;
             options.zoomDelta = options.zoomDelta || 1;
-            // use default
-            options.minZoom = options.minZoom || 5;
-            options.maxBounds = options.maxBounds || bounds;
+            if (typeof options.minZoom !== "number") {
+                options.minZoom = 5;
+            } else if (options.minZoom !== 0) {
+                // use default
+                options.minZoom = options.minZoom || 5;
+            }
+
+            if (options.maxBounds !== null) {
+                options.maxBounds = options.maxBounds || bounds;
+            }
+
+            // options.maxBounds = options.maxBounds || bounds;
             options.zoom = options.zoom || 6;
             options.layers = options.layers || [];
             options.maxBoundsViscosity = options.maxBoundsViscosity || 1.0;
@@ -641,6 +653,9 @@
                         + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(options.forceTile.prefix) + '</span>'
                         + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(options.forceTile.name) + '</span>'
                         + '</span>';
+                    if (typeof options.forceTile.useCache !== "boolean") {
+                        options.forceTile.useCache = options.forceTile;
+                    }
                     selection = createTileLayer(options.forceTile.uri, options.forceTile);
                     layers[name] = selection;
                 } catch (e) {
@@ -660,7 +675,7 @@
                             + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(LogMapProviders[k].name) + '</span>'
                             + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(a) + '</span>'
                             + '</span>';
-                        let ly = createLayer(a, k, {id: (k + ':' + a)});
+                        let ly = createLayer(a, k, {id: (k + ':' + a), useCache: options.useCache});
                         if (selection === null && k === currentProvider && currentMode === a) {
                             selection = ly;
                         }
