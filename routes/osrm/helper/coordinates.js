@@ -7,10 +7,12 @@ module.exports = (coordinates) => {
     let minLon = -180;
     // used based on world.geojson
     let maxMin = {
-        minLat: -10.359987,
-        minLon: 95.293026,
-        maxLat: 5.479821,
-        maxLon: 141.033852
+        //minLat: -10.359987,
+        minLat: -11.04,
+        //minLon: 95.293026,
+        minLon: 94.9,
+        maxLat: 5.98,
+        maxLon: 141.1
     };
     let rs = geo.code('IDN');
     if (rs && rs.info) {

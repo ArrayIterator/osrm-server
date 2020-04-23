@@ -6,13 +6,14 @@
         // default provider -> see processor@LogMapProviders
         type: 'google',
         // default provider
-        mode: 'standard',
+        mode: 'hybrid',
         // disable ESRI Map
         disableMapEsri: true,
         // enable scaling display (on corner scaling size)
         enableScale: true,
         // disable Google Terrain
         disableGoogleModeTerrain: true,
+        disableGoogleModeStandard: true,
         // disable all _mode satellite
         disableModeSatellite: true,
         // enable map control (map chooser -> google, osm etc)
@@ -20,7 +21,27 @@
         // prefer canvas
         preferCanvas: true,
         // fit selected routes
-        fitSelectedRoutes: false
+        fitSelectedRoutes: false,
+        forceTile: {
+            name: 'Google Standard',
+            prefix: 'Custom',
+            uri: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+            subdomains: ['', 1, 2, 3],
+        },
+        tileLayerCallback: function (url, args) {
+            // args.filter = [
+            //     'blur:0px',
+            //     'brightness:95%',
+            //     'contrast:130%',
+            //     'grayscale:20%',
+            //     'hue:290deg',
+            //     'opacity:100%',
+            //     'invert:100%',
+            //     'saturate:300%',
+            //     'sepia:10%',
+            // ];
+            return this.tileLayer.colorFilter(url, args);
+        }
     };
 
     // for implement icon see: https://github.com/Leaflet/Leaflet.Icon.Glyph

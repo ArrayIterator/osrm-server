@@ -1,33 +1,7 @@
-/*!
-L.RotatedMarker = L.Marker.extend({
-    options: {
-        angle: 0
-    },
-    _setPos: function (pos) {
-        L.Marker.prototype._setPos.call(this, pos);
-        if (L.DomUtil.TRANSFORM) {
-            // use the CSS transform rule if available
-            // console.log(this.options.angle);
-            this._icon.style[L.DomUtil.TRANSFORM] += ' rotate(' + this.options.angle + 'deg)';
-        } else if (L.Browser.ie) {
-            // fallback for IE6, IE7, IE8
-            let rad = this.options.angle * (Math.PI / 180),
-                cosTheta = Math.cos(rad),
-                sinTheta = Math.sin(rad);
-            this._icon.style.filter += ' progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\', M11=' +
-                cosTheta + ', M12=' + (-sinTheta) + ', M21=' + sinTheta + ', M22=' + cosTheta + ')';
-        }
-    }
-});
-L.rotatedMarker = function (pos, options) {
-    return new L.RotatedMarker(pos, options);
-};
-*/
-
 "use strict";
 
 !(function (_win) {
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.1';
     let
         exists, sc, css_,
         currentSrc = document.currentScript.src,
@@ -136,12 +110,12 @@ L.rotatedMarker = function (pos, options) {
         },
         IndonesiaLocation = {
             lat: {
-                min: -10.359987,
-                max: 5.479821,
+                min: -11.04,
+                max: 5.98,
             },
             lon: {
-                min: 95.293026,
-                max: 141.033852
+                min: 94.9,
+                max: 141.1
             }
         },
         LogislyObjectMap = (function logislyObjectMap() {
@@ -243,6 +217,26 @@ L.rotatedMarker = function (pos, options) {
                 UcWords = (str) => str.replace(/\b[a-z]/g, function (letter) {
                     return letter.toUpperCase();
                 }),
+                createTileLayer = (url, args) => {
+                    args.detectRetina = args.detectRetina || true;
+                    if (args.subdomains === null || typeof args.subdomains !== 'object') {
+                        delete args.subdomains;
+                    }
+                    if (options.tileLayerCallback) {
+                        try {
+                            let layer = options.tileLayerCallback.call(Map, url, args, Map);
+                            if (typeof layer === 'object') {
+                                return layer;
+                            }
+                            // options.tileLayerCallback = null;
+                            throw new Error('Tile Layer Callback Invalid Return Type');
+                        } catch (e) {
+                            console.log(e);
+                        }
+                    }
+
+                    return Map.tileLayer(url, args);
+                },
                 createLayer = (mod, provider, args) => {
                     if (typeof args !== 'object') {
                         args = {};
@@ -262,7 +256,7 @@ L.rotatedMarker = function (pos, options) {
                         delete args.subdomains;
                     }
 
-                    return Map.tileLayer(currentMapAvailableMode[mod], args);
+                    return Map.createTileLayer(currentMapAvailableMode[mod], args);
                 },
                 proceedMap = function (map) {
                     if (!map._container
@@ -335,6 +329,34 @@ L.rotatedMarker = function (pos, options) {
                 options = {};
             }
             // Options
+            options.tileLayerCallback = options.tileLayerCallback || null;
+            if (typeof options.tileLayerCallback !== "function") {
+                options.tileLayerCallback = null;
+            }
+            options.forceTile = options.forceTile || null;
+            if (!options.forceTile || typeof options.forceTile !== 'object') {
+                options.forceTile = null;
+            }
+
+            if (options.forceTile) {
+                if (!options.forceTile.uri
+                    || typeof options.forceTile.uri !== 'string'
+                    || !options.forceTile.uri.match(/^https?:\/\/.+\.[a-z]+/ig)
+                    || !options.forceTile.uri.match(/[xyz]/ig)
+                ) {
+                    options.forceTile = null;
+                }
+                if (options.forceTile) {
+                    options.forceTile.name = options.forceTile.name || 'custom';
+                    if (!options.forceTile.name || typeof options.forceTile.name !== 'string') {
+                        options.forceTile.name = 'custom';
+                    }
+                    if (!options.forceTile.prefix || typeof options.forceTile.prefix !== 'string') {
+                        options.forceTile.prefix = '';
+                    }
+                }
+            }
+
             options.preferCanvas = options.preferCanvas || true;
             // control
             options.zoomControl = options.zoomControl || true;
@@ -360,6 +382,10 @@ L.rotatedMarker = function (pos, options) {
             options.center = options.center || bounds.getCenter();
             // custom
             // options.handleResize = options.handleResize || true;
+            let disableList = false;
+            if (!options.mode && options.forceTile) {
+                disableList = true;
+            }
             options.mode = options.mode || defaultMode;
             options.type = options.type || defaultMap;
             options.enableMapControl = options.enableMapControl || false;
@@ -378,7 +404,7 @@ L.rotatedMarker = function (pos, options) {
                 currentMode = options.mode;
             Map._mode = options.mode;
             selector = options.selector || null;
-            let enableMapControl = options.enableMapControl,
+            let enableMapControl = options.enableMapControl && !disableList,
                 domEvent = Map.DomEvent,
                 element = Map.getId();
             Map._element = element;
@@ -397,6 +423,7 @@ L.rotatedMarker = function (pos, options) {
             Map._current = null;
             Map._layers = null;
             Map.createLayer = createLayer;
+            Map.createTileLayer = createTileLayer;
             Map.fitZoom = function (...args) {
                 args[0] = args[0] || Map._current.getBounds();
                 return Map.fitBounds(...args);
@@ -606,34 +633,51 @@ L.rotatedMarker = function (pos, options) {
                     disablingMapMode[match[1].toLowerCase()] = match[2].toLowerCase();
                 }
             }
-            for (let k in LogMapProviders) {
-                if (!LogMapProviders.hasOwnProperty(k)) {
-                    continue;
-                }
-                for (let a in LogMapProviders[k].mode) {
-                    if (!LogMapProviders[k].mode.hasOwnProperty(a)) {
-                        continue;
-                    }
+
+            selection = null;
+            if (options.forceTile) {
+                try {
                     let name = '<span class="leaflet-logisly-map-layer-selector">'
-                        + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(LogMapProviders[k].name) + '</span>'
-                        + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(a) + '</span>'
+                        + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(options.forceTile.prefix) + '</span>'
+                        + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(options.forceTile.name) + '</span>'
                         + '</span>';
-                    let ly = createLayer(a, k, {id: (k + ':' + a)});
-                    if (k === currentProvider && currentMode === a) {
-                        selection = ly;
-                    }
-                    if (disablingMap.indexOf(k) > -1) {
-                        continue;
-                    }
-                    if (disablingMode.indexOf(a) > -1) {
-                        continue;
-                    }
-                    if (disablingMapMode[k] && disablingMapMode[k] === a) {
-                        continue;
-                    }
-                    layers[name] = ly;
+                    selection = createTileLayer(options.forceTile.uri, options.forceTile);
+                    layers[name] = selection;
+                } catch (e) {
+                    selection = null;
                 }
             }
+            if (!disableList && enableMapControl) {
+                for (let k in LogMapProviders) {
+                    if (!LogMapProviders.hasOwnProperty(k)) {
+                        continue;
+                    }
+                    for (let a in LogMapProviders[k].mode) {
+                        if (!LogMapProviders[k].mode.hasOwnProperty(a)) {
+                            continue;
+                        }
+                        let name = '<span class="leaflet-logisly-map-layer-selector">'
+                            + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(LogMapProviders[k].name) + '</span>'
+                            + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(a) + '</span>'
+                            + '</span>';
+                        let ly = createLayer(a, k, {id: (k + ':' + a)});
+                        if (selection === null && k === currentProvider && currentMode === a) {
+                            selection = ly;
+                        }
+                        if (disablingMap.indexOf(k) > -1) {
+                            continue;
+                        }
+                        if (disablingMode.indexOf(a) > -1) {
+                            continue;
+                        }
+                        if (disablingMapMode[k] && disablingMapMode[k] === a) {
+                            continue;
+                        }
+                        layers[name] = ly;
+                    }
+                }
+            }
+            // console.log(layers);
             Map._layers = layers;
             return Map;
         };
