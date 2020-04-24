@@ -2,7 +2,8 @@
     // MAP CONFIG
     let config = {
         // maxBounds: null, // max bounds null to access all areas, undefined to indonesia
-        minZoom: 5,
+        minZoom: 0,
+        maxZoom: 18,
         // id selector
         selector: 'map',
         // default provider -> see processor@LogMapProviders
@@ -20,11 +21,13 @@
         disableModeSatellite: true,
         // enable map control (map chooser -> google, osm etc)
         enableMapControl: false,
+        // zoomControl: false,
         // prefer canvas
         preferCanvas: true,
         // fit selected routes
         fitSelectedRoutes: false,
-        useCache: true,
+        useCache: false,
+        saveToCache: true,
         forceTile: {
             name: 'Logisly',
             prefix: 'Map',
@@ -76,6 +79,7 @@
             }
             $overlay.style = 'opacity:'+(trans)+'%';
         }, 20);
+
         // get currentMap
         let currentMap = Map.getMap();
         /*!
@@ -296,9 +300,13 @@
      */
     let onSuccessCallback = function(Map) {
         let coordinatesData = [];
+        let retryCount = [];
         function getRemote(count)
         {
             let coordinate = $coordinates[count];
+            if (!$coordinates[count]) {
+                alert(count);
+            }
             coordinate += '|' + ($coordinates[count+1] || $coordinates[0]);
 
             let url = routingCoordinatesUrl.replace(/\{co\}/g, coordinate);
@@ -314,15 +322,40 @@
                         // pass
                     }
                     if ($coordinates[count+1]) {
-                        setTimeout(function () {
-                            getRemote(count+1);
-                        }, 1000);
+                        // setTimeout(function () {
+                        getRemote(count+1);
+                        //}, 1000);
                         return;
                     }
                     processor(coordinatesData, Map);
                 },
                 error: (xhr) => {
-                    getRemote(count);
+                    if (!retryCount[count]) {
+                        retryCount[count] = 1;
+                    }
+
+                    if (retryCount[count]++ > 10) {
+                        if (coordinatesData.length > 0) {
+                            processor(coordinatesData, Map);
+                            return;
+                        }
+
+                        alert('Could Not Request Routing API');
+                        let trans = 100;
+                        let int = setInterval(function () {
+                            trans = trans-5;
+                            if (trans <= 0 ) {
+                                clearInterval(int);
+                                $overlay.remove();
+                                return;
+                            }
+                            $overlay.style = 'opacity:'+(trans)+'%';
+                        }, 20);
+                        return;
+                    }
+                    setTimeout(function () {
+                        getRemote(count);
+                    }, 2000);
                 }
             });
         }

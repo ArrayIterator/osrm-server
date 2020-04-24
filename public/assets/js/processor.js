@@ -1,5 +1,5 @@
+/*! leaflet map processor */
 "use strict";
-
 !(function (_win) {
     const VERSION = '1.0.1';
     let
@@ -358,49 +358,100 @@
                     }
                 }
             }
-
-            options.preferCanvas = options.preferCanvas || true;
-            // control
-            options.zoomControl = options.zoomControl || true;
+            let defaultOptions = {
+                preferCanvas: true,
+                zoomControl: true,
+                dragging: true,
+                closePopupOnClick: true,
+                doubleClickZoom: true,
+                trackResize: true,
+                enableMapControl: true,
+                zoomAnimation: true,
+                fadeAnimation: true,
+                useCache: false,
+                attributionControl: false,
+                zoomSnap: 1,
+                zoomDelta: 1,
+                minZoom: 5,
+                maxZoom: 18,
+                zoom: 5,
+                zoomAnimationThreshold: 4,
+                mode: defaultMode,
+                type: defaultMap,
+            };
+            for (let key in defaultOptions) {
+                if (!defaultOptions.hasOwnProperty(key)) {
+                    continue;
+                }
+                options[key] =  typeof options[key] === "undefined" ? defaultOptions[key] : options[key];
+            }
+            options.preferCanvas = !!options.preferCanvas;
+            options.zoomControl = !!options.zoomControl;
             options.useCache = !!options.useCache;
-            options.attributionControl = options.attributionControl || false;
-            // Interaction
-            options.dragging = options.dragging || true;
-            options.closePopupOnClick = options.closePopupOnClick || true;
-            options.doubleClickZoom = options.doubleClickZoom || true;
-            options.trackResize = options.trackResize || true;
-            options.zoomSnap = options.zoomSnap || 1;
-            options.zoomDelta = options.zoomDelta || 1;
-            if (typeof options.minZoom !== "number") {
-                options.minZoom = 5;
-            } else if (options.minZoom !== 0) {
-                // use default
-                options.minZoom = options.minZoom || 5;
+            options.attributionControl = !!options.attributionControl;
+            if (typeof options.saveToCache !== "undefined") {
+                options.saveToCache = !!options.saveToCache;
+            } else {
+                options.saveToCache = options.useCache;
             }
 
+            // Interaction
+            options.dragging = !!options.dragging;
+            options.closePopupOnClick = !!options.closePopupOnClick;
+            options.doubleClickZoom = !!options.doubleClickZoom;
+            options.trackResize = !!options.trackResize;
+            if (typeof options.zoomSnap === 'string' && options.zoomSnap.match(/^[0-9\s]+/g)) {
+                options.zoomSnap = parseInt(options.zoomSnap);
+            }
+            if (typeof options.zoomDelta === 'string' && options.zoomDelta.match(/^[0-9\s]+/g)) {
+                options.zoomDelta = parseInt(options.zoomDelta);
+            }
+            if (typeof options.minZoom === 'string' && options.minZoom.match(/^[0-9\s]+/g)) {
+                options.minZoom = parseInt(options.minZoom);
+            }
+            if (typeof options.maxZoom === 'string' && options.maxZoom.match(/^[0-9\s]+/g)) {
+                options.maxZoom = parseInt(options.maxZoom);
+            }
+            if (typeof options.zoomAnimationThreshold === 'string'
+                && options.zoomAnimationThreshold.match(/^[0-9\s]+/g)
+            ) {
+                options.zoomAnimationThreshold = parseInt(options.zoomAnimationThreshold);
+            }
+            if (typeof options.zoom === 'string' && options.zoom.match(/^[0-9\s]+/g)) {
+                options.zoom = parseInt(options.zoom);
+            }
+            options.zoomSnap = typeof options.zoomSnap !== "number" ? defaultOptions.zoomSnap : options.zoomSnap;
+            options.zoomDelta = typeof options.zoomDelta !== "number" ? defaultOptions.zoomDelta : options.zoomDelta;
+            options.minZoom = typeof options.minZoom !== "number" ? defaultOptions.minZoom : options.minZoom;
+            options.maxZoom = typeof options.maxZoom !== "number" ? defaultOptions.maxZoom : options.maxZoom;
+            options.minZoom = options.minZoom < 0 ? 0 : options.minZoom;
+            // leaflet only support max zoom 18 to properly display tiles
+            options.minZoom = options.minZoom > 18 ? 18 : options.minZoom;
+            options.maxZoom = options.maxZoom < 0 ? 0 : options.maxZoom;
+            options.maxZoom = options.maxZoom > 18 ? 18 : options.maxZoom;
+            options.zoomAnimationThreshold = typeof options.zoomAnimationThreshold !== "number"
+                ? defaultOptions.zoomAnimationThreshold
+                : options.zoomAnimationThreshold;
+            options.zoom = typeof options.zoom !== "number" ? defaultOptions.zoom : options.zoom;
             if (options.maxBounds !== null) {
                 options.maxBounds = options.maxBounds || bounds;
             }
 
-            // options.maxBounds = options.maxBounds || bounds;
-            options.zoom = options.zoom || 6;
             options.layers = options.layers || [];
             options.maxBoundsViscosity = options.maxBoundsViscosity || 1.0;
-            // animation
-            options.zoomAnimation = options.zoomAnimation || true;
-            options.zoomAnimationThreshold = options.zoomAnimation || 4;
-            options.fadeAnimation = options.fadeAnimation || true;
-            // map
+            options.zoomAnimation = !!options.zoomAnimation;
+            options.fadeAnimation = !!options.fadeAnimation;
             options.center = options.center || bounds.getCenter();
-            // custom
-            // options.handleResize = options.handleResize || true;
             let disableList = false;
             if (!options.mode && options.forceTile) {
                 disableList = true;
             }
             options.mode = options.mode || defaultMode;
             options.type = options.type || defaultMap;
-            options.enableMapControl = options.enableMapControl || false;
+            if (typeof options.enableMapControl === "undefined" && typeof options['enableControl'] !== "undefined") {
+                options.enableMapControl = !! options['enableControl'];
+            }
+            options.enableMapControl = !!options.enableMapControl;
             // MAP
             Map._type = options.type && typeof options.type === 'string'
             && options.type.toString().match(/(open|osm|openstreetmap)/gi)
@@ -534,8 +585,6 @@
                     currentMap = _this.map(Map._element, options);
                     _this._current = currentMap;
                     _this._current.logislyMap = _this;
-                    // console.log(currentMap.fitBounds);
-                    // console.log(this.fitBounds);
                     // add nested Object
                     for (let i in _this) {
                         if (!_this.hasOwnProperty(i)) {
@@ -615,7 +664,6 @@
                     } else if (fn === 'function') {
                         fn.call(_this, e, _this._current, _this);
                     }
-                    // console.log(Map);
                     if (typeof _this._error === 'function') {
                         _this._error.call(_this, e, _this);
                     }
@@ -654,7 +702,12 @@
                         + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(options.forceTile.name) + '</span>'
                         + '</span>';
                     if (typeof options.forceTile.useCache !== "boolean") {
-                        options.forceTile.useCache = options.forceTile;
+                        options.forceTile.useCache = options.useCache;
+                    }
+                    if (options.forceTile.useCache) {
+                        options.forceTile.saveToCache = true;
+                    } else if (typeof options.forceTile.saveToCache !== "boolean") {
+                        options.forceTile.saveToCache = options.saveToCache;
                     }
                     selection = createTileLayer(options.forceTile.uri, options.forceTile);
                     layers[name] = selection;
@@ -675,7 +728,13 @@
                             + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(LogMapProviders[k].name) + '</span>'
                             + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(a) + '</span>'
                             + '</span>';
-                        let ly = createLayer(a, k, {id: (k + ':' + a), useCache: options.useCache});
+                        let ly = createLayer(
+                            a, k, {
+                                    id: (k + ':' + a),
+                                    useCache: options.useCache,
+                                    saveToCache: options.saveToCache
+                                }
+                            );
                         if (selection === null && k === currentProvider && currentMode === a) {
                             selection = ly;
                         }
@@ -692,7 +751,6 @@
                     }
                 }
             }
-            // console.log(layers);
             Map._layers = layers;
             return Map;
         };
