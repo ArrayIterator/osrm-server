@@ -19,17 +19,17 @@
         // disable all _mode satellite
         disableModeSatellite: true,
         // enable map control (map chooser -> google, osm etc)
-        enableMapControl: true,
+        enableMapControl: false,
         // prefer canvas
         preferCanvas: true,
         // fit selected routes
         fitSelectedRoutes: false,
         useCache: false,
         forceTile: {
-            name: 'Standard',
-            prefix: 'Google',
-            uri: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-            subdomains: ['', 1, 2, 3],
+            name: 'Logisly',
+            prefix: 'Map',
+            uri: 'https://{s}.tile.logisly.com/{z}/{x}/{y}.png',
+            subdomains: 'abc',
         },
         tileLayerCallback: function (url, args) {
             args.filter = [
@@ -59,37 +59,25 @@
      * ------------------------------------------------------
      */
     let urlHost = location.protocol + '//' + location.host;
-    let routingCoordinatesUrl = urlHost + '/osrm/route/?coordinates=112.7227133,-7.9963867|113.6548642,-7.9963867&geometry=poly&overview=full&compress=1';
-
-    /*!
-     * ------------------------------------------------------
-     * // PROCESSOR ON SUCCEED
-     * ------------------------------------------------------
-     */
-    let applicationProcessor = (result, Map) => {
-        let countForLooping = 0;
-        let countIncrementInterval = 0;
-        let timeOut = 3;
-        let tm = timeOut - countIncrementInterval;
-
-        // if in invalid clause
-        if (!result.data.result.routes[0]) {
-            return;
-        }
+    let $coordinates = [
+        '112.7227133,-7.9963867',
+        '112.7380904,-8.2084605',
+        '113.6548642,-7.9963867'
+    ];
+    let routingCoordinatesUrl = urlHost + '/osrm/route/?coordinates={co}&geometry=poly&overview=full&compress=1';
+    let processor = (data, Map) => {
+        let trans = 100;
+        let int = setInterval(function () {
+            trans = trans-5;
+            if (trans <= 0 ) {
+                clearInterval(int);
+                $overlay.remove();
+                return;
+            }
+            $overlay.style = 'opacity:'+(trans)+'%';
+        }, 20);
         // get currentMap
         let currentMap = Map.getMap();
-
-        /*!
-         * ------------------------------------------------------
-         * Decode Polyline
-         * // @> result.data.result.routes[0].geometry
-         * ------------------------------------------------------
-         */
-        let PolyLineDecoded = currentMap.decode(result.data.result.routes[0].geometry);
-        if (! PolyLineDecoded || typeof PolyLineDecoded !== 'object') {
-            return;
-        }
-
         /*!
          * ------------------------------------------------------
          * Marker Group & Markers
@@ -97,69 +85,46 @@
          */
         // MarkerGroup to Binding All Current Marker Grouping
         let MarkersGroup = Map.featureGroup();
-
-        // add Markers Group To Layer
-        currentMap.addLayer(MarkersGroup);
-
-        /*!
-         * ------------------------------------------------------
-         * Add Decoded Polyline To CurrentMap
-         * This create line of road
-         * ------------------------------------------------------
-         */
-        // add PolyLine from PolyLineDecode to create Route LINE
-        let polyline = currentMap.polyline(PolyLineDecoded).addTo(currentMap);
-
-        // below is example of straight line
-        // if merge will be add additional straight line
-        // currentMap.polyline([PolyLineDecoded[0], PolyLineDecoded[PolyLineDecoded.length-1]]).addTo(currentMap);
-
-        // get last Position by count latLng
-        let last = polyline.getLatLngs().length - 1;
-
-        /*!
-         * ------------------------------------------------------
-         * add last marker
-         * ------------------------------------------------------
-         */
-        // get last Position
-        let position = polyline.getLatLngs()[last];
-        let markerLast = currentMap
-            .marker(position, {
-                icon: L.icon.glyph({
-                    prefix: 'mif',
-                    glyph: 'my-location'
-                })
-            })
-            .bindPopup("Destination Point: " + JSON.stringify(position))
-            // add to marker
-            .addTo(MarkersGroup);
-
-        /*!
-         * ------------------------------------------------------
-         * add first marker to marker Group
-         * ------------------------------------------------------
-         */
-        // change current position to starting point
-        position = polyline.getLatLngs()[0];
-        let firstMarker = currentMap.marker(
-                position,
-                {
-                    icon: L.icon.glyph({
-                        prefix: 'mif',
-                        glyph: 'location-city'
-                    })
-                    // if used URL as ICON
-                    // icon: L.icon.glyph({
-                    //     prefix: 'mdi', // icon type
-                    //     iconUrl: urlToIcon, // icon URL
-                    //     iconSize: [32, 32], // icon Size
-                    // })
+        let poly = null;
+        let startingPoints = {};
+        for (let i = 0;data.length > i;i++) {
+            let decoded = currentMap.decode(data[i]);
+            data[i] = null;
+            if (decoded && typeof decoded === 'object' && decoded.length > 0) {
+                let polyline = currentMap.polyline(decoded).addTo(currentMap);
+                for (let i =0;polyline.getLatLngs().length >i ;i++) {
+                    if(i === 0) {
+                        startingPoints[JSON.stringify(polyline.getLatLngs()[i])] = true;
+                    }
+                    if (!poly) {
+                        poly = currentMap.polyline([polyline.getLatLngs()[i]]);
+                        continue;
+                    }
+                    poly.addLatLng(polyline.getLatLngs()[i]);
                 }
-            )
-            .addTo(MarkersGroup)
-            // add popup content
-            .bindPopup("Origin : " + JSON.stringify(position));
+                let position = polyline.getLatLngs()[0];
+                let start = i+1;
+                currentMap
+                    .marker(position, {
+                        icon: L.icon.glyph({
+                            prefix: 'mif',
+                            glyph: 'my-location'
+                        })
+                    }).addTo(MarkersGroup)
+                    .bindPopup(
+                        (
+                             `<h1>Starting Point ${start}</h1>`
+                        ) +
+                        `<p>
+                        Lat: ${position.lat}<br/>
+                        Lng: ${position.lng}</p>
+                    `);
+            }
+        }
+
+        currentMap.addLayer(MarkersGroup);
+        currentMap.flyToBounds(MarkersGroup, {animate: true});
+        let position = poly.getLatLngs()[0];
         /*!
          * ------------------------------------------------------
          * POPUP ELEMENT
@@ -168,25 +133,34 @@
          * ------------------------------------------------------
          */
         let divPopUpElement = document.createElement('div');
-        divPopUpElement.innerHTML = '<h3>I\'m Moving</h3><p> Latitude :<br> <span data-lat="'+position.lat+'">'
+        let h3 = document.createElement('h3');
+            h3.innerHTML = "I'm Moving";
+        divPopUpElement.innerHTML = '<p> Latitude :<br> <span data-lat="'+position.lat+'">'
             +position.lat+'</span><br>'
             + 'Longitude:<br> <span data-lng="'+position.lng+'">'+position.lat+'</span>'
             +'</p>';
         let dataLatElement  = divPopUpElement.querySelector('[data-lat]');
         let dataLngElement  = divPopUpElement.querySelector('[data-lng]');
-
-        /*!
-         * ------------------------------------------------------
-         * fit bound first fly it -> animated
-         * ------------------------------------------------------
-         */
-        currentMap.flyToBounds(MarkersGroup, {animate: true});
-
-        /*!
-         * ------------------------------------------------------
-         * Add Points each on moving marker
-         * ------------------------------------------------------
-         */
+        divPopUpElement.prepend(h3);
+        let firstMarker = currentMap
+            .marker(
+                position,
+                {
+                icon: L.icon.glyph({
+                    prefix: 'mif',
+                    glyph: 'location-city'
+                })
+                // if used URL as ICON
+                // icon: L.icon.glyph({
+                //     prefix: 'mdi', // icon type
+                //     iconUrl: urlToIcon, // icon URL
+                //     iconSize: [32, 32], // icon Size
+                // })
+            }
+            )
+            .addTo(MarkersGroup)
+            // add popup content
+            .bindPopup("Origin : " + JSON.stringify(position));
         let movingMarker = currentMap
             .marker(position, {
                 icon: currentMap.icon.glyph({
@@ -203,9 +177,14 @@
         // set Last Position
         // This just for reference
         let lastPosition = position;
-        let lastAngle = lastPosition.bearingTo(polyline.getLatLngs()[1]);
+        let lastAngle = lastPosition.bearingTo(poly.getLatLngs()[1]);
         // set rotation angle (bearing)
-        movingMarker.setRotationAngle(lastAngle);
+        // movingMarker.setRotationAngle(lastAngle);
+        let last = poly.getLatLngs().length - 1;
+        let countForLooping = 0;
+        let countIncrementInterval = 0;
+        let timeOut = 3;
+        let tm = timeOut - countIncrementInterval;
 
         /*!
          * ------------------------------------------------------
@@ -219,11 +198,22 @@
                 // open popup on first
                 movingMarker.addTo(MarkersGroup).openPopup();
             }
+
             // check if on last pointer
-            if (countForLooping + 1 >= last || !polyline.getLatLngs()[countForLooping + 1]) {
+            if (countForLooping + 1 >= last || !poly.getLatLngs()[countForLooping + 1]) {
                 if (movingMarker) {
                     movingMarker.closePopup();
                     MarkersGroup.removeLayer(movingMarker);
+                    let markerLast = currentMap
+                        .marker(position, {
+                            icon: L.icon.glyph({
+                                prefix: 'mif',
+                                glyph: 'my-location'
+                            })
+                        })
+                        .bindPopup("Destination Point: " + JSON.stringify(position))
+                        // add to marker
+                        .addTo(MarkersGroup);
                     markerLast._popup.setContent(
                         '<p><strong>Yay!!! We\'ve got arrive</strong><br>'
                         + '<br>Lat: '+position.lat
@@ -233,14 +223,12 @@
                     markerLast.openPopup();
                     countForLooping = 0;
                 }
+                poly = null;
                 console.log('DONE .....!');
                 return;
             }
-            countForLooping++;
-            if ((countForLooping % 2) !== 0) {
-                looping();
-                return;
-            }
+            let selection = JSON.stringify(position);
+            let inStop = typeof startingPoints[selection] === 'boolean' && countForLooping > 1;
             if (dataLatElement) {
                 dataLatElement.setAttribute('data-lat', position.lat);
                 dataLatElement.innerHTML = position.lat;
@@ -249,18 +237,37 @@
                 dataLngElement.setAttribute('data-lat', position.lng);
                 dataLngElement.innerHTML = position.lng;
             }
+            h3.innerHTML = "I'm Moving";
+            countForLooping++;
+            if ((countForLooping % 2) !== 0) {
+                if (inStop) {
+                    h3.innerHTML = "I'm On CheckPoint";
+                    setTimeout(function () {
+                        looping();
+                    }, 1000);
+                    return;
+                }
+                looping();
+                return;
+            }
 
             lastPosition = position;
             // get current Position
-            position = polyline.getLatLngs()[countForLooping];
+            position = poly.getLatLngs()[countForLooping];
             // set current marker position
             movingMarker.setLatLng(position);
 
             // set angle / bearing
             lastAngle = lastPosition.bearingTo(position);
-            movingMarker.setRotationAngle(lastAngle);
-
-            setTimeout(looping, 10);
+            // movingMarker.setRotationAngle(lastAngle);
+            if (inStop) {
+                h3.innerHTML = "I'm On CheckPoint";
+                setTimeout(function () {
+                    looping();
+                }, 1000);
+                return;
+            }
+            setTimeout(looping, 5);
         };
         // RUNNING MOVE
         setTimeout(() => {
@@ -288,19 +295,38 @@
      * ------------------------------------------------------
      */
     let onSuccessCallback = function(Map) {
-        // call remote this could Used As looping prefetch
-        Map.remoteJSON(routingCoordinatesUrl, {
-            success: (resultData, xhr, Map) => {
-                $overlay.remove();
-                return applicationProcessor(
-                    resultData,
-                    Map
-                );
-            },
-            error: (xhr) => {
-                // console.log(xhr);
-            }
-        });
+        let coordinatesData = [];
+        function getRemote(count)
+        {
+            let coordinate = $coordinates[count];
+            coordinate += '|' + ($coordinates[count+1] || $coordinates[0]);
+
+            let url = routingCoordinatesUrl.replace(/\{co\}/g, coordinate);
+            // call remote this could Used As looping prefetch
+            Map.remoteJSON(url, {
+                success: (resultData, xhr, Map) => {
+                    try {
+                        let geo = resultData.data.result.routes[0].geometry;
+                        if (geo) {
+                            coordinatesData.push(geo);
+                        }
+                    } catch (e) {
+                        // pass
+                    }
+                    if ($coordinates[count+1]) {
+                        setTimeout(function () {
+                            getRemote(count+1);
+                        }, 1000);
+                        return;
+                    }
+                    processor(coordinatesData, Map);
+                },
+                error: (xhr) => {
+                    getRemote(count);
+                }
+            });
+        }
+        getRemote(0);
     };
 
     /*!
