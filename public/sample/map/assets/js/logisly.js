@@ -24,7 +24,7 @@
         preferCanvas: true,
         // fit selected routes
         fitSelectedRoutes: false,
-        useCache: false,
+        useCache: true,
         forceTile: {
             name: 'Logisly',
             prefix: 'Map',

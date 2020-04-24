@@ -146,6 +146,7 @@
 .leaflet-control {
     float: left;
     clear: both;
+    user-select: none;
 }
 .leaflet-right .leaflet-control {
     float: right;
