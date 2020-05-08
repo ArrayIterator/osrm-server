@@ -48,3 +48,7 @@ osrm-customize data.osrm
 ```bash
 osrm-contract data.osrm
 ```
+> Create data store
+```bash
+osrm-datastore data.osrm
+```
