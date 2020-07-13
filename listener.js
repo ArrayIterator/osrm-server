@@ -1,4 +1,3 @@
-const app = require('./scripts');
 const PortCheck = require('./scripts/PortCheck');
 const fs = require('fs');
 let port_start = 5050;
@@ -10,6 +9,7 @@ let upstream_name = 'generated_node_proxy_osrm';
 let upstream_file = __dirname + '/nginx/upstream/'+upstream_name+'.conf';
 let listen_address = '127.0.0.1';
 let timeout = 60000; // in milliseconds
+let nodejs = process.argv[0];
 
 // NGINX CONF
 // fail timeout nginx
@@ -20,6 +20,20 @@ if (fail_timeout < 10) {
     fail_timeout = 40;
 }
 let max_fails = 3;
+function run(...cmd) {
+    return new Promise((resolve, reject) => {
+        let spawn = require('child_process').spawn;
+        let command = spawn.call(this, ...cmd);
+        let result = '';
+        command.stdout.on('data', function(data) {
+            result += data.toString()
+        });
+        command.on('close', function(code) {
+            resolve(command, code, result);
+        });
+        command.on('error', function(err) { reject(err) })
+    })
+}
 
 let listener = (inuse, port, app) => {
     counted++;
@@ -73,18 +87,53 @@ let listener = (inuse, port, app) => {
         console.log(`---------------------------------------`);
         return PortCheck(port+1, listener, app);
     }
+
     succeed++;
-    let application = app();
+    console.log(port);
     ports.push(port);
-    let server = application.listen(port, listen_address, () => {
-        let addr = server.address();
-        console.log(`\n---------------------------------------`);
-        console.log("Listening [\033[33m"+addr.family+"\033[0m] => \033[32m"+addr.address+":"+addr.port+"\033[0m");
-        console.log(`---------------------------------------`);
-        application.start(() => {
-            PortCheck(addr.port+1, listener, app);
-        });
-    }).setTimeout(timeout);
+    run(nodejs, [`${__dirname}/index.js`, port]).catch((err) => {
+        console.log(err);
+    }).then((command, code, data) => {
+        console.log(data);
+    });
+    return;
+    let child = require('child_process')
+        .spawn(`${__dirname}/index.js`);
+    // child.on('error', function (e) {
+    //     console.log(e);
+    // });
+    var result = '';
+    child.stdout.on('data', function(data) {
+        result += data.toString();
+    });
+    child.on('close', function(code) {
+        console.log(result);
+    });
+    child.on('exit', function (code, signal) {
+        console.log('child process exited with ' +
+            `code ${code} and signal ${signal}`);
+    });
+    // let child = spawn(`${nodejs} ${__dirname}/index.js ${port}`);
+    // , (error,  stdout, stderr) => {
+    //     if (error) {
+    //         console.log(`error: ${error.message}`);
+    //         return;
+    //     }
+    //     if (stderr) {
+    //         console.log(`stderr: ${stderr}`);
+    //         return;
+    //     }
+    //     console.log(`stdout: ${stdout}`);
+    // });
+    // let server = application.listen(port, listen_address, () => {
+    //     let addr = server.address();
+    //     console.log(`\n---------------------------------------`);
+    //     console.log("Listening [\033[33m"+addr.family+"\033[0m] => \033[32m"+addr.address+":"+addr.port+"\033[0m");
+    //     console.log(`---------------------------------------`);
+    //     application.start(() => {
+    //         PortCheck(addr.port+1, listener, app);
+    //     });
+    // }).setTimeout(timeout);
 };
 
-PortCheck(port_start, listener, app);
+PortCheck(port_start, listener);

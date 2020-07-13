@@ -1,32 +1,35 @@
-/*! leaflet map processor */
+/*! leaflet map processor - 1.0.2 */
 "use strict";
 !(function (_win) {
-    const VERSION = '1.0.1';
+    const VERSION = '1.0.2';
     let
         exists, sc, css_,
-        currentSrc = document.currentScript.src,
-        _css = ['/css/map.package.css'],
-        __process_dir = currentSrc.split('/').slice(0, -2).join('/'),
-        wDir = __process_dir.replace(/^https?:/gi, '');
+        currentSrc = document.currentScript ? document.currentScript.src : null;
     let ret = _win.document.head;
-    for (let i = 0; _css.length > i; i++) {
-        exists = false;
-        css_ = wDir + _css[i];
-        for (let c = 0; document.styleSheets.length > c; c++) {
-            let currentCss = document.styleSheets[c].toString().replace(/^https?:/gi, '');
-            exists = css_ === currentCss;
-        }
-        if (!exists) {
-            sc = document.createElement('link');
-            sc.rel = 'stylesheet';
-            sc.href = css_;
-            if (ret.getElementsByTagName('title').length) {
-                ret.prepend(ret.getElementsByTagName('title')[0], sc);
-                continue;
+    if (currentSrc) {
+        let _css = ['/css/map.package.css'],
+            __process_dir = currentSrc.split('/').slice(0, -2).join('/'),
+            wDir = __process_dir.replace(/^https?:/gi, '');
+        for (let i = 0; _css.length > i; i++) {
+            exists = false;
+            css_ = wDir + _css[i];
+            for (let c = 0; document.styleSheets.length > c; c++) {
+                let currentCss = document.styleSheets[c].toString().replace(/^https?:/gi, '');
+                exists = css_ === currentCss;
             }
-            ret.prepend(sc);
+            if (!exists) {
+                sc = document.createElement('link');
+                sc.rel = 'stylesheet';
+                sc.href = css_;
+                if (ret.getElementsByTagName('title').length) {
+                    ret.prepend(ret.getElementsByTagName('title')[0], sc);
+                    continue;
+                }
+                ret.prepend(sc);
+            }
         }
     }
+
     if (typeof _win.LogislyObjectMap !== 'undefined') {
         console.log(
             'LogislyObjectMap has been loaded before.'
@@ -43,7 +46,7 @@
         let dLon = (LatLng.lng - this.lng) * d2r;
         let y = Math.sin(dLon) * Math.cos(lat2);
         let x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-        return (parseInt((Math.atan2(y, x) * r2d)) + 360) % 360;
+        return (parseInt((Math.atan2(y, x) * r2d) ) + 360) % 360;
     };
 
     L.windowLoad = (fn) => {
@@ -750,6 +753,22 @@
                         layers[name] = ly;
                     }
                 }
+            }
+            if (selection === null) {
+                let name = '<span class="leaflet-logisly-map-layer-selector">'
+                    + '<span class="leaflet-logisly-map-layer-provider">' + UcWords(LogMapProviders[currentProvider].name) + '</span>'
+                    + ' <span class="leaflet-logisly-map-layer-_mode">' + UcWords(currentMode) + '</span>'
+                    + '</span>';
+                selection = createLayer(
+                    currentMode,
+                    currentProvider,
+                    {
+                        id: (currentProvider + ':' + currentMode),
+                        useCache: options.useCache,
+                        saveToCache: options.saveToCache
+                    }
+                );
+                layers[name] = selection;
             }
             Map._layers = layers;
             return Map;
