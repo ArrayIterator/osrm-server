@@ -31,8 +31,8 @@
         forceTile: {
             name: 'Logisly',
             prefix: 'Map',
-            uri: 'https://{s}.tile.logisly.com/{z}/{x}/{y}.png',
-            subdomains: 'abc',
+            uri: 'https://tile-{s}.logisly.com/{z}/{x}/{y}.png',
+            subdomains: 'abcd',
         },
         tileLayerCallback: function (url, args) {
             args.filter = [
