@@ -38,7 +38,7 @@ module.exports = (options) => {
         try {
             return new OSRM(options);
         } catch (e) {
-            console.log('ERROR OSRM CHANGED :' + e.message);
+            console.error('ERROR OSRM CHANGED :' + e.message);
             if (e.message.toString().match(/shared\s+memory/gi)) {
                 options.shared_memory = false;
             }
@@ -51,19 +51,21 @@ module.exports = (options) => {
             try {
                 return new OSRM(options);
             } catch (e) {
-                console.log('ERROR OSRM ERROR :' + e.message);
-                try {
-                    console.log('TRY TO USE NO SHARED MEMORY');
-                    options.shared_memory = false;
-                    return new OSRM(options);
-                } catch (e) {
-                    console.log('ERROR OSRM ERROR :' + e.message);
-                    return {
-                        message: "500 Internal Server Error. OSRM database has not ready.",
-                        code: 500,
-                        trace: e.message
-                    };
+                console.error('ERROR OSRM ERROR :' + e.message);
+                if (options.shared_memory === true) {
+                    try {
+                        console.info('TRY TO USE NO SHARED MEMORY');
+                        options.shared_memory = false;
+                        return new OSRM(options);
+                    } catch (e) {
+                        console.error('ERROR OSRM ERROR :' + e.message);
+                    }
                 }
+                return {
+                    message: "500 Internal Server Error. OSRM database has not ready.",
+                    code: 500,
+                    trace: e.message
+                };
             }
         }
     } else {
