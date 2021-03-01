@@ -48,9 +48,34 @@ module.exports = (options) => {
             if (e.message.toString().match(/data[\s_]*set/gi) && options.dataset_name) {
                 delete options.dataset_name;
             }
-            return new OSRM(options);
+            try {
+                return new OSRM(options);
+            } catch (e) {
+                console.log('ERROR OSRM ERROR :' + e.message);
+                try {
+                    console.log('TRY TO USE NO SHARED MEMORY');
+                    options.shared_memory = false;
+                    return new OSRM(options);
+                } catch (e) {
+                    console.log('ERROR OSRM ERROR :' + e.message);
+                    return {
+                        message: "500 Internal Server Error. OSRM database has not ready.",
+                        code: 500,
+                        trace: e.message
+                    };
+                }
+            }
         }
     } else {
-        return new OSRM(options);
+        try {
+            return new OSRM(options);
+        } catch (e) {
+            console.log('ERROR OSRM ERROR :' + e.message);
+            return {
+                message: "500 Internal Server Error. OSRM database has not ready.",
+                code: 500,
+                trace: e.message
+            };
+        }
     }
 };
