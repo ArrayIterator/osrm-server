@@ -6,11 +6,11 @@ module.exports = (port, callback, ...variable) => {
     });
     server.listen(port, '127.0.0.1');
     server.on('error', function (e) {
-        callback(true, port, ...variable);
+        callback(true, port, ...variable, server);
     });
 
     server.on('listening', function (e) {
         server.close();
-        callback(false, port, ...variable);
+        callback(false, port, ...variable, server);
     });
 };
