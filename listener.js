@@ -1,7 +1,12 @@
+// or just leave this file like this
+// just create custom-listener.js and copy all of content of this file & edit it.
+// -> START
 const PortCheck = require('./scripts/PortCheck');
 const fs = require('fs');
-let port_start = 5050;
 let ports = []; // lists succeed ports
+// listen start port -> use range of free ports
+let port_start = 5050;
+// max upstream count -> change this to another values
 let countMax = 15;
 let succeed = 0;
 let counted = 0;
@@ -54,6 +59,8 @@ let listener = (inuse, port, app) => {
                 for (let p = 0; ports.length > p; p++) {
                     stream.write(`\tserver ${listen_address}:${ports[p]} max_fails=${max_fails} fail_timeout=${fail_timeout}s;\n`);
                 }
+                // add upstream fair
+                stream.write(`\tfair;`);
                 stream.write(`}\n`);
                 stream.close();
             } catch (e) {
