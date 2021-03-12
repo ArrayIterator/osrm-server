@@ -40,7 +40,7 @@ function run(...cmd) {
     })
 }
 
-let listener = (inuse, port, server) => {
+let listener = (inuse, port, closedServer) => {
     counted++;
     if (counted > countMax) {
         console.log(`\n---------------------------------------`);
@@ -84,7 +84,6 @@ let listener = (inuse, port, server) => {
         console.log("Please execute \033[34msudo nginx -s reload\033[0m if required.");
         console.log("Check configuration with \033[34msudo nginx -t\033[0m before doing restart nginx.");
         console.log(`---------------------------------------\n`);
-        server.timeout = (fail_timeout*1000)+2000;
         return;
     }
 
@@ -92,8 +91,22 @@ let listener = (inuse, port, server) => {
         console.log(`\n---------------------------------------`);
         console.log("Port \033[33m"+port+"\033[0m is in used");
         console.log(`---------------------------------------`);
-        return PortCheck(port+1, listener);
+        return PortCheck(port+1, listener, app);
     }
+
+    succeed++;
+    let application = app();
+    ports.push(port);
+    let server = application.listen(port, listen_address, () => {
+        let addr = server.address();
+        console.log(`\n---------------------------------------`);
+        console.log("Listening [\033[33m"+addr.family+"\033[0m] => \033[32m"+addr.address+":"+addr.port+"\033[0m");
+        console.log(`---------------------------------------`);
+        application.start(() => {
+            PortCheck(addr.port+1, listener, app);
+        });
+    }).setTimeout(timeout);
+    return;
 
     succeed++;
     console.log(port);
@@ -143,4 +156,4 @@ let listener = (inuse, port, server) => {
     // }).setTimeout(timeout);
 };
 
-PortCheck(port_start, listener);
+PortCheck(port_start, listener, app);
