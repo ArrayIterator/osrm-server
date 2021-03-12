@@ -99,7 +99,7 @@ function GeoJson()
                         info: getMaxMin(all[i].geometry.coordinates),
                         result: {
                             type: "FeatureCollection",
-                            features: all[i]
+                            features: [all[i]]
                         },
                     };
                 }
@@ -131,7 +131,7 @@ function GeoJson()
                         info: getMaxMin(all[i].geometry.coordinates),
                         result: {
                             type: "FeatureCollection",
-                            features: all[i]
+                            features: [all[i]]
                         }
                     };
                 }
