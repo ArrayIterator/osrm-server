@@ -94,6 +94,7 @@ function GeoJson()
                 ) {
                     continue;
                 }
+                // update features as array<object>
                 if (all[i].metadata['countries'][ik]['iso3166'][selection].toUpperCase() === code) {
                     return {
                         info: getMaxMin(all[i].geometry.coordinates),
