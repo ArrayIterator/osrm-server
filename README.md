@@ -86,6 +86,17 @@ upstream node_proxy_osrm {
 }
 
 server {
+    listen 80;
+    # listen 443 ssl http2;
+
+    # ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
+
+    # ROOT PATH JUST TO TRY FILES
+    root /home/$user/host/$domain/public;
+
+    # SERVER NAME / DOMAIN
+    server_name $domain www.$domain;
 
     # SET DEFAULT MIME TYPE
     default_type text/html;
@@ -93,20 +104,6 @@ server {
     proxy_set_header X-Forwarded-For $remote_addr;
     # ADD REAL HOST
     proxy_set_header Host $http_host;
-
-    # ------------------------------------------------------------
-    # STATEMENTS CHECK
-    # ------------------------------------------------------------
-    set $exists_root_path false;
-
-    # create variable with
-    # set $osrm_upstream_name generated_node_proxy_osrm
-    # to use generated stream
-
-    # CHANGE TO DEFAULT
-    if ($osrm_upstream_name = false) {
-        set $osrm_upstream_name 127.0.0.1:5050;
-    }
 
     # ------------------------------------------------------------
     # ERROR HANDLER
@@ -172,17 +169,13 @@ server {
     # ------------------------------------------------------------
 
     location @proxy {
-        proxy_pass http://$osrm_upstream_name;
+        proxy_pass http://node_proxy_osrm;
     }
 
-    # HANDLE ROOT URI TO NON EXISTENCE TO DIRECT SCRIPT (REMOVED)
-    # location = / {
-    #    try_files /.non-existence-file @proxy;
-    #}
-
     # HANDLE LOCATION
+    # use try_files $uri @proxy; -> to prevent accessing directory as allowed url index
     location / {
-        try_files $uri @proxy;
+        try_files $uri $uri/ @proxy;
     }
 }
 
