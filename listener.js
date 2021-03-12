@@ -60,7 +60,7 @@ let listener = (inuse, port, app) => {
                     stream.write(`\tserver ${listen_address}:${ports[p]} max_fails=${max_fails} fail_timeout=${fail_timeout}s;\n`);
                 }
                 // add upstream fair
-                stream.write(`\tfair;`);
+                stream.write(`\tfair;\n`);
                 stream.write(`}\n`);
                 stream.close();
             } catch (e) {
