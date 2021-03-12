@@ -40,7 +40,7 @@ function run(...cmd) {
     })
 }
 
-let listener = (inuse, port, app) => {
+let listener = (inuse, port, server) => {
     counted++;
     if (counted > countMax) {
         console.log(`\n---------------------------------------`);
@@ -84,7 +84,7 @@ let listener = (inuse, port, app) => {
         console.log("Please execute \033[34msudo nginx -s reload\033[0m if required.");
         console.log("Check configuration with \033[34msudo nginx -t\033[0m before doing restart nginx.");
         console.log(`---------------------------------------\n`);
-
+        server.timeout = (fail_timeout*1000)+2000;
         return;
     }
 
@@ -92,7 +92,7 @@ let listener = (inuse, port, app) => {
         console.log(`\n---------------------------------------`);
         console.log("Port \033[33m"+port+"\033[0m is in used");
         console.log(`---------------------------------------`);
-        return PortCheck(port+1, listener, app);
+        return PortCheck(port+1, listener);
     }
 
     succeed++;
