@@ -67,7 +67,7 @@ add header `X-Auth-Token` with with declared token to get access
 
 
 ```conf
-# MAKE SURE INSTALL NGINX EXTRAS, HEADER MORE & ECHO MODULE
+# MAKE SURE INSTALL MOD UPSTREAM & FAIR
 # FILE $domain.vhost.conf
 # NGINX NODE UPSTREAM ADD MAX FAILS 3 & FAILED TIMEDOUT 30 SECONDS
 upstream node_proxy_osrm {
@@ -82,76 +82,103 @@ upstream node_proxy_osrm {
     server 127.0.0.1:5057 max_fails=3 fail_timeout=30s;
     server 127.0.0.1:5058 max_fails=3 fail_timeout=30s;
     server 127.0.0.1:5059 max_fails=3 fail_timeout=30s;
+    fair;
 }
 
 server {
 
-    listen 80;
-    # listen 443 ssl http2;
-    # ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-
-    # ROOT PATH JUST TO TRY FILES
-    root /home/$user/host/$domain/public;
-    # SERVER NAME / DOMAIN
-    server_name $domain www.$domain;
-
-    # ADD DEFAULT MIME TYPE
+    # SET DEFAULT MIME TYPE
     default_type text/html;
     # ADD PROXY HEADER
     proxy_set_header X-Forwarded-For $remote_addr;
     # ADD REAL HOST
     proxy_set_header Host $http_host;
 
-    # INDEX (NOT USED)
+    # ------------------------------------------------------------
+    # STATEMENTS CHECK
+    # ------------------------------------------------------------
+    set $exists_root_path false;
+
+    # create variable with
+    # set $osrm_upstream_name generated_node_proxy_osrm
+    # to use generated stream
+
+    # CHANGE TO DEFAULT
+    if ($osrm_upstream_name = false) {
+        set $osrm_upstream_name 127.0.0.1:5050;
+    }
+
+    # ------------------------------------------------------------
+    # ERROR HANDLER
+    # ------------------------------------------------------------
+
+    # INDEX (NOT USED) NO INDEX TO MAKE SURE HANDLE BY NGINX
     # index '#';
 
     # ERROR HANDLER
-    location = /\#404 {
-        add_header Content-Type application/json;
+    location = '/#401' {
         default_type application/json;
-        add_header http 404;
-        echo "{\n    \"message\": \"404 Not Found\"\n}";
+        add_header Content-Type application/json;
+        return 401 '{
+    "message": "401 Unauthorized"
+}';
+}
+    location = '/#404' {
+        default_type application/json;
+        add_header Content-Type application/json;
+        return 404 '{
+    "message": "404 Not Found"
+}';
     }
-    location = /\#403 {
-        add_header Content-Type application/json;
+    location = '/#403' {
         default_type application/json;
-        add_header http 403;
-        echo "{\n    \"message\": \"403 Forbidden\"\n}";
+        add_header Content-Type application/json;
+        return 403 '{
+    "message": "403 Forbidden"
+}';
     }
-    location = /\#500 {
-        add_header Content-Type application/json;
+    location = '/#500' {
         default_type application/json;
-        add_header http 500;
-        echo "{\n    \"message\": \"500 Internal Server Error\"\n}";
+        add_header Content-Type application/json;
+        return 500 '{
+    "message": "500 Internal Server Error"
+}';
     }
-    location = /\#502 {
-        add_header Content-Type application/json;
+    location = '/#502' {
         default_type application/json;
-        add_header http 502;
-        echo "{\n    \"message\": \"502 Bad Gateway\"\n}";
+        add_header Content-Type application/json;
+        return 502 '{
+    "message": "502 Bad Gateway"
+}';
     }
-    location = /\#504 {
-        add_header Content-Type application/json;
+    location = '/#504' {
         default_type application/json;
-        add_header http 504;
-        echo "{\n    \"message\": \"504 Gateway Timeout\"\n}";
+        add_header Content-Type application/json;
+        return 504 '{
+    "message": "504 Gateway Timeout"
+}';
     }
 
     # HANDLE ERROR
-    error_page 404 /\#404;
-    error_page 403 /\#403;
-    error_page 500 /\#500;
-    error_page 502 /\#502;
-    error_page 504 /\#504;
+    error_page 401 '/#401';
+    error_page 404 '/#404';
+    error_page 403 '/#403';
+    error_page 500 '/#500';
+    error_page 502 '/#502';
+    error_page 504 '/#504';
+
+    # ------------------------------------------------------------
+    # LOCATIONS
+    # ------------------------------------------------------------
+
     location @proxy {
-        proxy_pass http://node_proxy_osrm;
+        proxy_pass http://$osrm_upstream_name;
     }
 
-    # HANDLE ROOT URI TO NON EXISTENCE TO DIRECT SCRIPT
-    location = / {
-        try_files /.non-existence-file @proxy;
-    }
+    # HANDLE ROOT URI TO NON EXISTENCE TO DIRECT SCRIPT (REMOVED)
+    # location = / {
+    #    try_files /.non-existence-file @proxy;
+    #}
 
     # HANDLE LOCATION
     location / {
