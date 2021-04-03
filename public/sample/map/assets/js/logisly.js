@@ -31,8 +31,8 @@
         forceTile: {
             name: 'Logisly',
             prefix: 'Map',
-            uri: 'https://tile-{s}.logisly.com/{z}/{x}/{y}.png',
-            subdomains: 'abcd',
+            uri: 'https://{s}.tile.logisly.com/{z}/{x}/{y}.png',
+            subdomains: 'abc',
         },
         tileLayerCallback: function (url, args) {
             args.filter = [
@@ -63,6 +63,12 @@
      */
     let urlHost = location.protocol + '//' + location.host;
     let $coordinates = [
+	'106.82718,-6.1753942',
+	'105.6039203,-6.6725',
+	'110.4229104,-6.9903988',
+	'106.7577985,-7.4230113',
+	'108.2201154,-7.3262484',
+	'107.4439799,-6.5607313',
         '112.7227133,-7.9963867',
         '112.7380904,-8.2084605',
         '113.6548642,-7.9963867'

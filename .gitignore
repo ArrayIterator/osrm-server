@@ -125,4 +125,4 @@ node_modules/
 /nginx/upstream/generated_node_proxy_osrm.conf
 /custom-osrm.sh
 /custom-listener.js
-
+/ecosystem.config.js
