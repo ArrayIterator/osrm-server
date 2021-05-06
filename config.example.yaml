@@ -17,7 +17,8 @@ osrm:
   path: ${data}/osrm/indonesia-latest.osrm
   algorithm: "MLD"
   mmap_memory: true
-  shared_memory: true
+  # I try to test with shared memory and it was hung up on calll new OSRM()
+  shared_memory: false
 geoip:
   # GEO IP FILE
   country: ${data}/geoip/GeoIP-Country.mmdb
