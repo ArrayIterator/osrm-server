@@ -78,9 +78,26 @@ module.exports = async (query, timeoutProcessSecond) => {
     query = null;
     let response,
         q;
+    let timeout = 5;
+    let intvalErr;
+    let stopped = false;
+    let StopInt = function() {
+        if (stopped === false && intvalErr) {
+            stopped = true;
+            clearInterval(intvalErr);
+            intvalErr = null;
+        }
+    };
     try {
+        intvalErr = setInterval(function() {
+            if (timeout-- < 0) {
+                StopInt();
+                throw new Error("There was timeout processing request!");
+            }
+        }, 1000);
         osrm.route(queries, (err, result) => {
             if (err) {
+                StopInt();
                 response = {
                     code: 500,
                     message: err
@@ -106,17 +123,20 @@ module.exports = async (query, timeoutProcessSecond) => {
                 response.data.result[k] = result[k];
             }
             result = null;
+            StopInt();
             return response;
         });
 
         let Response = await AsyncAwait(() => response !== undefined, () => response, timeoutProcessSecond);
         if (Response instanceof Error) {
+            StopInt();
             Response = {
                 message: Response.message,
                 code: Response.code
             }
         }
         if (Response.data === undefined && Response.message.toString().match(/nosegment|noroute/gi)) {
+            StopInt();
             return {
                 message: 'Could not find data within given request.',
                 request: {
@@ -125,9 +145,10 @@ module.exports = async (query, timeoutProcessSecond) => {
                 code: 404
             }
         }
-
+        StopInt();
         return Response;
     } catch (e) {
+        StopInt();
         // console.log(e);
         if (e.message.match(/nosegment|noroute/gi)) {
             return {
