@@ -78,7 +78,7 @@ module.exports = async (query, timeoutProcessSecond) => {
     query = null;
     let response,
         q;
-    let timeout = 5;
+    /*let timeout = 5;
     let intvalErr;
     let stopped = false;
     let StopInt = function() {
@@ -87,14 +87,14 @@ module.exports = async (query, timeoutProcessSecond) => {
             clearInterval(intvalErr);
             intvalErr = null;
         }
-    };
+    };*/
     try {
-        intvalErr = setInterval(function() {
+        /*intvalErr = setInterval(function() {
             if (timeout-- < 0) {
                 StopInt();
                 throw new Error("There was timeout processing request!");
             }
-        }, 1000);
+        }, 1000);*/
         osrm.route(queries, (err, result) => {
             if (err) {
                 StopInt();
@@ -123,20 +123,20 @@ module.exports = async (query, timeoutProcessSecond) => {
                 response.data.result[k] = result[k];
             }
             result = null;
-            StopInt();
+            //StopInt();
             return response;
         });
 
         let Response = await AsyncAwait(() => response !== undefined, () => response, timeoutProcessSecond);
         if (Response instanceof Error) {
-            StopInt();
+            //StopInt();
             Response = {
                 message: Response.message,
                 code: Response.code
             }
         }
         if (Response.data === undefined && Response.message.toString().match(/nosegment|noroute/gi)) {
-            StopInt();
+            //StopInt();
             return {
                 message: 'Could not find data within given request.',
                 request: {
@@ -145,10 +145,10 @@ module.exports = async (query, timeoutProcessSecond) => {
                 code: 404
             }
         }
-        StopInt();
+        //StopInt();
         return Response;
     } catch (e) {
-        StopInt();
+        //StopInt();
         // console.log(e);
         if (e.message.match(/nosegment|noroute/gi)) {
             return {
