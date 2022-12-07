@@ -9,7 +9,7 @@
     "express": "^4.18.2",
     "express-group-routes": "^1.1.0",
     "maxmind": "^4.1.0",
-    "osrm": "^5.22.0",
+    "osrm": "^5.26.0",
     "polyline-encoded": "0.0.9",
     "yaml": "^1.7.2"
   },
